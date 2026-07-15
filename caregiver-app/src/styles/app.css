@@ -39,7 +39,7 @@ button { font-family: var(--font-body); }
   flex: 1; text-align: center; padding: .55rem 0 .5rem; color: var(--muted);
   text-decoration: none; font-size: .72rem; font-weight: 600;
 }
-.tabbar a .ic { display: block; font-size: 1.15rem; margin-bottom: .1rem; }
+.tabbar a .ic { display: flex; align-items: center; justify-content: center; margin-bottom: .15rem; }
 .tabbar a.active { color: var(--blue); border-top: 3px solid var(--gold); margin-top: -1px; }
 
 .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.05rem; margin-bottom: .9rem; box-shadow: 0 1px 3px rgba(10,37,64,.06); }
