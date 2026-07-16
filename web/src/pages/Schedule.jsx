@@ -103,6 +103,7 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
   }))
   const [err, setErr] = useState('')
   const [hoursWarning, setHoursWarning] = useState(null)
+  const [dayAuthWarning, setDayAuthWarning] = useState(null)
   const [busy, setBusy] = useState(false)
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -131,6 +132,31 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
         if (live) setHoursWarning(total > cl.authorized_hours_per_week
           ? `This would bring the week to ${total.toFixed(1)}h, exceeding the ${cl.authorized_hours_per_week}h authorized.`
           : null)
+      })
+    return () => { live = false }
+  }, [form.client_id, form.date, form.start, form.end])
+
+  useEffect(() => {
+    if (!form.client_id || !form.date || !form.start || !form.end) { setDayAuthWarning(null); return }
+    let live = true
+    supabase.from('client_authorization').select('*').eq('client_id', form.client_id).maybeSingle()
+      .then(({ data: auth }) => {
+        if (!live || !auth) { if (live) setDayAuthWarning(null); return }
+        if (auth.effective_until && form.date > auth.effective_until) {
+          if (live) setDayAuthWarning(`This client's authorization ended on ${auth.effective_until}.`)
+          return
+        }
+        const shiftHrs = (new Date(`2000-01-01T${form.end}`) - new Date(`2000-01-01T${form.start}`)) / 3600000
+        const weekday = new Date(form.date + 'T00:00').getDay()
+        let cap = null
+        if (auth.pattern === 'weekly') cap = Number(auth.weekday_hours?.[weekday] ?? 0)
+        else if (auth.pattern === 'daily') cap = Number(auth.daily_hours || 0)
+        // monthly pattern is a total cap, not checked per-shift here — office reviews cumulative usage separately
+        if (auth.pattern !== 'monthly' && cap !== null) {
+          if (live) setDayAuthWarning(shiftHrs > cap
+            ? `${WEEKDAYS[weekday]} is only authorized for ${cap}h for this client — this shift is ${shiftHrs.toFixed(1)}h.`
+            : null)
+        } else if (live) setDayAuthWarning(null)
       })
     return () => { live = false }
   }, [form.client_id, form.date, form.start, form.end])
@@ -195,6 +221,7 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
     }>
       {err && <p className="notice notice-bad">{err}</p>}
       {hoursWarning && <p className="notice notice-warn">⚠ {hoursWarning}</p>}
+      {dayAuthWarning && <p className="notice notice-warn">⚠ {dayAuthWarning}</p>}
       <div className="form-row">
         <Field label="Client">
           <select value={form.client_id} onChange={set('client_id')}>
