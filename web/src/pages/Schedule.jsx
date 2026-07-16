@@ -102,6 +102,7 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
     repeat: false, repeatDays: [], repeatUntil: toISODate(addDays(new Date(), 28)),
   }))
   const [err, setErr] = useState('')
+  const [hoursWarning, setHoursWarning] = useState(null)
   const [busy, setBusy] = useState(false)
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -114,6 +115,25 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
   const sortedCg = [...caregivers].sort((a, b) =>
     (availableIds.has(b.id) ? 1 : 0) - (availableIds.has(a.id) ? 1 : 0)
   )
+
+  useEffect(() => {
+    if (!form.client_id || !form.date || !form.start || !form.end) { setHoursWarning(null); return }
+    let live = true
+    supabase.from('clients').select('authorized_hours_per_week').eq('id', form.client_id).single()
+      .then(async ({ data: cl }) => {
+        if (!live || !cl?.authorized_hours_per_week) { if (live) setHoursWarning(null); return }
+        const weekStart = new Date(form.date + 'T00:00'); weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+        const { data } = await supabase.from('v_client_weekly_scheduled_hours').select('scheduled_hours')
+          .eq('client_id', form.client_id).eq('week_start', weekStart.toISOString()).maybeSingle()
+        const already = data?.scheduled_hours || 0
+        const thisShiftHrs = (new Date(`2000-01-01T${form.end}`) - new Date(`2000-01-01T${form.start}`)) / 3600000
+        const total = already + thisShiftHrs
+        if (live) setHoursWarning(total > cl.authorized_hours_per_week
+          ? `This would bring the week to ${total.toFixed(1)}h, exceeding the ${cl.authorized_hours_per_week}h authorized.`
+          : null)
+      })
+    return () => { live = false }
+  }, [form.client_id, form.date, form.start, form.end])
 
   const save = async () => {
     setErr('')
@@ -174,6 +194,7 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
       </>
     }>
       {err && <p className="notice notice-bad">{err}</p>}
+      {hoursWarning && <p className="notice notice-warn">⚠ {hoursWarning}</p>}
       <div className="form-row">
         <Field label="Client">
           <select value={form.client_id} onChange={set('client_id')}>
