@@ -10,6 +10,7 @@ import Caregivers from './pages/Caregivers'
 import Hours from './pages/Hours'
 import Invoices from './pages/Invoices'
 import Alerts from './pages/Alerts'
+import Messages from './pages/Messages'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
 
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="hours" element={<Hours />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="alerts" element={<Alerts />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="team" element={<Team />} />
             <Route path="settings" element={<Settings />} />
           </Route>

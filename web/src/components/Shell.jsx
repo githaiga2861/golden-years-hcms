@@ -1,8 +1,8 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import logo from '../assets/logo.png'
+import { supabase } from '../lib/supabase'
 
 const NAV = [
   ['/app', 'Dashboard', '⌂', true],
@@ -12,6 +12,7 @@ const NAV = [
   ['/app/hours', 'Verified Hours', '✓'],
   ['/app/invoices', 'Invoices', '¤'],
   ['/app/alerts', 'Alerts', '!'],
+  ['/app/messages', 'Messages', '✉'],
   ['/app/team', 'Team & Roles', '⚑'],
   ['/app/settings', 'Settings', '⚙'],
 ]
@@ -20,6 +21,7 @@ export default function Shell() {
   const { profile, signOut } = useAuth()
   const nav = useNavigate()
   const [openAlerts, setOpenAlerts] = useState(0)
+  const [unreadMsgs, setUnreadMsgs] = useState(0)
 
   useEffect(() => {
     let live = true
@@ -28,6 +30,16 @@ export default function Shell() {
         .then(({ count }) => live && setOpenAlerts(count || 0))
     load()
     const t = setInterval(load, 60000)
+    return () => { live = false; clearInterval(t) }
+  }, [])
+
+  useEffect(() => {
+    let live = true
+    const load = () =>
+      supabase.from('v_office_unread_messages').select('id', { count: 'exact', head: true })
+        .then(({ count }) => live && setUnreadMsgs(count || 0))
+    load()
+    const t = setInterval(load, 30000)
     return () => { live = false; clearInterval(t) }
   }, [])
 
@@ -43,6 +55,7 @@ export default function Shell() {
             <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <span aria-hidden="true">{icon}</span> {label}
               {label === 'Alerts' && openAlerts > 0 && <span className="badge">{openAlerts}</span>}
+              {label === 'Messages' && unreadMsgs > 0 && <span className="badge">{unreadMsgs}</span>}
             </NavLink>
           ))}
         </nav>
