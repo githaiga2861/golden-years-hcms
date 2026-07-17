@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getPosition, distanceM } from '../lib/geo'
+import { drivingDistanceMiles } from '../lib/googleMaps'
 import { enqueue, syncQueue } from '../lib/offline'
 import SignaturePad, { getCanvasBlob } from '../components/SignaturePad'
 
@@ -36,6 +37,9 @@ export default function Visit() {
   const [gps, setGps] = useState(null)          // last known {lat,lng}
   const [locationReady, setLocationReady] = useState(null) // null=checking, true=ok, false=denied/unavailable
   const [showSignoff, setShowSignoff] = useState(false)
+  const [journeyChoice, setJourneyChoice] = useState(null) // null | 'here' | 'directions'
+  const [journeyBusy, setJourneyBusy] = useState(false)
+  const [mileageAutoNote, setMileageAutoNote] = useState('')
   const [clientSigName, setClientSigName] = useState('')
   const [hasClientSig, setHasClientSig] = useState(false)
   const [hasCaregiverSig, setHasCaregiverSig] = useState(false)
@@ -66,6 +70,7 @@ export default function Visit() {
       .select('*, clients(*, mobility_levels(label))').eq('id', shiftId).single()
     if (!s) return
     setShift(s); setClient(s.clients); setMobility(s.clients?.mobility_levels?.label || null)
+    if (s.journey_start_at) setJourneyChoice('directions')
 
     const { data: al } = await supabase.from('client_allergies').select('allergies_list(label)').eq('client_id', s.client_id)
     setAllergies((al || []).map((r) => r.allergies_list?.label).filter(Boolean))
@@ -131,6 +136,39 @@ export default function Visit() {
 
   const flash = (kind, text, ms = 4000) => { setMsg({ kind, text }); setTimeout(() => setMsg(null), ms) }
 
+  const startJourney = async () => {
+    setJourneyBusy(true)
+    const pos = await getPosition()
+    if (!pos) {
+      setJourneyBusy(false)
+      flash('bad', 'Location access is required to start your journey.', 6000)
+      return
+    }
+    const at = new Date().toISOString()
+    await supabase.from('shifts').update({
+      journey_start_lat: pos.lat, journey_start_lng: pos.lng, journey_start_at: at,
+    }).eq('id', shift.id)
+    setShift((s) => ({ ...s, journey_start_lat: pos.lat, journey_start_lng: pos.lng, journey_start_at: at }))
+    setJourneyBusy(false)
+    if (client?.latitude != null && client?.longitude != null) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${client.latitude},${client.longitude}&travelmode=driving`, '_blank')
+    }
+  }
+
+  const calcJourneyMileage = async (visitId) => {
+    if (!shift?.journey_start_lat || !client?.latitude) return
+    const miles = await drivingDistanceMiles(
+      { lat: shift.journey_start_lat, lng: shift.journey_start_lng },
+      { lat: client.latitude, lng: client.longitude },
+    )
+    if (miles == null) return
+    const rounded = Math.round(miles * 10) / 10
+    await supabase.from('visits').update({ mileage_miles: rounded }).eq('id', visitId)
+    setMileage(rounded)
+    setMileageSaved(true)
+    setMileageAutoNote(`Auto-calculated from your route: ${rounded} mi`)
+  }
+
   const clockIn = async () => {
     setBusy(true)
     const pos = await getPosition()
@@ -175,6 +213,8 @@ export default function Visit() {
         setLocal({ clock_in_at: at, tasks: planTasks.map((t) => ({ id: `local-${t.id}`, label: t.label, category: t.category, instructions: t.instructions, completed: false })) })
       } else {
         await load()
+        const { data: v } = await supabase.from('visits').select('id').eq('shift_id', shiftId).maybeSingle()
+        if (v) calcJourneyMileage(v.id)
       }
     } else {
       enqueue({ type: 'clock_in', shift_id: shiftId, lat: pos.lat, lng: pos.lng, at })
@@ -403,6 +443,28 @@ export default function Visit() {
         <div className="now">{now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
         {!clockedIn && (
           <>
+            {journeyChoice === null && (
+              <div className="card" style={{ background: 'var(--paper)', marginBottom: '.8rem' }}>
+                <p style={{ margin: '0 0 .6rem', fontWeight: 600 }}>Do you need directions to {client?.first_name}'s home, or are you already there?</p>
+                <div style={{ display: 'flex', gap: '.5rem' }}>
+                  <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setJourneyChoice('directions')}>I need directions</button>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setJourneyChoice('here')}>I'm already here</button>
+                </div>
+              </div>
+            )}
+            {journeyChoice === 'directions' && !shift?.journey_start_at && (
+              <div className="card" style={{ background: 'var(--paper)', marginBottom: '.8rem' }}>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={startJourney} disabled={journeyBusy}>
+                  {journeyBusy ? 'Getting your location…' : '▶ Start journey'}
+                </button>
+                <p className="muted" style={{ fontSize: '.8rem', marginTop: '.5rem', marginBottom: 0 }}>
+                  This records your starting point so mileage can be calculated for compensation, then opens directions in your maps app.
+                </p>
+              </div>
+            )}
+            {journeyChoice === 'directions' && shift?.journey_start_at && (
+              <p className="notice notice-ok" style={{ marginBottom: '.8rem' }}>Journey started — directions opened in your maps app. Come back here and clock in once you arrive.</p>
+            )}
             {locationReady === false && (
               <p className="notice notice-bad" style={{ marginBottom: '.6rem' }}>
                 Location access is blocked or unavailable. Please enable location for this app in your device settings — you cannot clock in without it.
@@ -567,6 +629,7 @@ export default function Visit() {
       {clockedIn && visit && (
         <div className="card">
           <h3>Mileage</h3>
+          {mileageAutoNote && <p className="notice notice-ok" style={{ fontSize: '.84rem' }}>{mileageAutoNote}</p>}
           <div className="form-row">
             <div className="field"><label>Miles driven for this visit</label>
               <input type="number" step="0.1" value={mileage} onChange={(e) => { setMileage(e.target.value); setMileageSaved(false) }} />
