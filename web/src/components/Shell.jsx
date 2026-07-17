@@ -12,6 +12,7 @@ const NAV = [
   ['/app/hours', 'Verified Hours', '✓'],
   ['/app/invoices', 'Invoices', '¤'],
   ['/app/alerts', 'Alerts', '!'],
+  ['/app/reports', 'Reports', '▤'],
   ['/app/messages', 'Messages', '✉'],
   ['/app/team', 'Team & Roles', '⚑'],
   ['/app/settings', 'Settings', '⚙'],
