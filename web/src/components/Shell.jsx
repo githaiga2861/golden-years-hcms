@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useRefresh } from '../context/RefreshContext'
 import logo from '../assets/logo.png'
 import { supabase } from '../lib/supabase'
 
@@ -21,6 +22,7 @@ const NAV = [
 export default function Shell() {
   const { profile, signOut } = useAuth()
   const nav = useNavigate()
+  const { tick, spinning, refresh } = useRefresh()
   const [openAlerts, setOpenAlerts] = useState(0)
   const [unreadMsgs, setUnreadMsgs] = useState(0)
 
@@ -67,7 +69,25 @@ export default function Shell() {
             onClick={async () => { await signOut(); nav('/') }}>Sign out</button>
         </div>
       </aside>
-      <main className="main"><Outlet /></main>
+      <main className="main"><Outlet key={tick} /></main>
+      <button
+        onClick={refresh}
+        aria-label="Refresh this page"
+        title="Refresh this page"
+        style={{
+          position: 'fixed', bottom: '1.6rem', right: '1.6rem', zIndex: 200,
+          width: 52, height: 52, borderRadius: '50%', border: 'none',
+          background: 'var(--blue-ink)', color: '#fff', cursor: 'pointer',
+          display: 'grid', placeItems: 'center', boxShadow: '0 4px 14px rgba(10,37,64,.35)',
+        }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round"
+          style={{ transition: 'transform .6s ease', transform: spinning ? 'rotate(360deg)' : 'rotate(0deg)' }}>
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+          <polyline points="21 3 21 9 15 9" />
+        </svg>
+      </button>
     </div>
   )
 }

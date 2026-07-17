@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { RefreshProvider } from './context/RefreshContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Shell from './components/Shell'
@@ -39,6 +40,7 @@ function Protected({ children }) {
 export default function App() {
   return (
     <AuthProvider>
+      <RefreshProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -59,6 +61,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </RefreshProvider>
     </AuthProvider>
   )
 }
