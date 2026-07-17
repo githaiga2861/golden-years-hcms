@@ -1,0 +1,81 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'caregiver-app/**'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: caregiver-app
+        run: npm ci
+
+      - name: Build web assets
+        working-directory: caregiver-app
+        run: npm run build
+
+      - name: Sync Capacitor Android project
+        working-directory: caregiver-app
+        run: npx cap sync android
+
+      - name: Decode signing keystore
+        working-directory: caregiver-app/android/app
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+
+      - name: Make gradlew executable
+        working-directory: caregiver-app/android
+        run: chmod +x gradlew
+
+      - name: Build signed release APK
+        working-directory: caregiver-app/android
+        env:
+          ANDROID_KEYSTORE_PATH: release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease
+
+      - name: Publish APK to a stable download URL on the site
+        run: |
+          mkdir -p web/public/downloads
+          cp caregiver-app/android/app/build/outputs/apk/release/app-release.apk web/public/downloads/golden-years-care.apk
+
+      - name: Commit updated APK
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/public/downloads/golden-years-care.apk
+          git diff --cached --quiet || git commit -m "Auto-build: update Android APK [skip ci]"
+          git push
+
+      - name: Upload APK as a build artifact too
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-years-care-apk
+          path: caregiver-app/android/app/build/outputs/apk/release/app-release.apk

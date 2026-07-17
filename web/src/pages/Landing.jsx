@@ -52,11 +52,12 @@ export default function Landing() {
           <div className="app-card">
             <h2 className="thread">Golden Years Care App</h2>
             <p>For caregivers — clock in and out, see your schedule and each client's care plan, complete ADL checklists, and write visit notes. Install it on your phone and sign in only inside the app, with instructions from the office.</p>
-            <a className="btn btn-gold mt" href={`${import.meta.env.BASE_URL}care-app/`} onClick={(e) => { /* becomes the deployed Care App URL */ }}>
-              Open &amp; install the Care App
+            <a className="btn btn-gold mt" href={`${import.meta.env.BASE_URL}downloads/golden-years-care.apk`} download>
+              Download the Android App
             </a>
             <p className="muted" style={{ fontSize: '.8rem', marginTop: '.7rem' }}>
-              On your phone: open the link, then choose “Add to Home Screen” to install.
+              On your phone: tap to download the .apk, then open it to install (you may need to allow "install from unknown sources" the first time). iPhone version coming later —
+              in the meantime, <a href={`${import.meta.env.BASE_URL}care-app/`}>use the web version here</a>.
             </p>
           </div>
         </div>
