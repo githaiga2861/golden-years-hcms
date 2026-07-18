@@ -393,6 +393,7 @@ function ClientModal({ client, onClose, onSaved }) {
             <AddressAutocomplete
               value={f.address}
               placeholder="123 Main St"
+              onTextChange={(text) => setF((prev) => ({ ...prev, address: text }))}
               onSelect={(r) => {
                 setF((prev) => ({
                   ...prev, address: r.address, city: r.city, state: r.state, zip: r.zip,

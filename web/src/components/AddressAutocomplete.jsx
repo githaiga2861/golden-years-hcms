@@ -7,7 +7,7 @@ import { loadGoogleMaps } from '../lib/googleMaps'
  * city/state/zip and precise coordinates immediately — no separate
  * "Locate" step needed for addresses that appear in the dropdown.
  */
-export default function AddressAutocomplete({ value, onSelect, placeholder }) {
+export default function AddressAutocomplete({ value, onSelect, onTextChange, placeholder }) {
   const inputRef = useRef(null)
   const [ready, setReady] = useState(false)
   const [err, setErr] = useState('')
@@ -56,6 +56,7 @@ export default function AddressAutocomplete({ value, onSelect, placeholder }) {
         defaultValue={value}
         placeholder={placeholder || 'Start typing an address…'}
         autoComplete="off"
+        onChange={(e) => onTextChange?.(e.target.value)}
       />
       {err && <span className="help" style={{ color: 'var(--bad)' }}>{err} You can still type the address manually and use "Locate" below.</span>}
       {!ready && !err && <span className="help">Loading address suggestions…</span>}
