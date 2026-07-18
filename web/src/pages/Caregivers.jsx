@@ -81,46 +81,61 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
   const [restrictionIds, setRestrictionIds] = useState([])
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [loadingExisting, setLoadingExisting] = useState(!isNew)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
 
-  // New-registration-only: collected locally, written together on final Save.
   const [availList, setAvailList] = useState([])
   const [newAvail, setNewAvail] = useState({ weekday: 1, start_time: '08:00', end_time: '17:00' })
   const [timeOffList, setTimeOffList] = useState([])
   const [newTimeOff, setNewTimeOff] = useState({ starts_at: '', ends_at: '', reason: '' })
   const [credList, setCredList] = useState([])
   const [newCred, setNewCred] = useState({ credential_type: '', credential_number: '', issued_date: '', expiry_date: '', notes: '' })
-  const [makeAccount, setMakeAccount] = useState(true)
+  const [makeAccount, setMakeAccount] = useState(isNew)
   const [acctEmail, setAcctEmail] = useState('')
   const [acctPassword, setAcctPassword] = useState('')
+  const [linkedEmail, setLinkedEmail] = useState('')
 
   useEffect(() => {
-    if (!isNew) {
-      supabase.from('caregiver_skills').select('skill_id').eq('caregiver_id', caregiver.id)
-        .then(({ data }) => setSkillIds((data || []).map((r) => r.skill_id)))
-      supabase.from('caregiver_restrictions').select('restriction_id').eq('caregiver_id', caregiver.id)
-        .then(({ data }) => setRestrictionIds((data || []).map((r) => r.restriction_id)))
-    }
+    if (isNew) return
+    setLoadingExisting(true)
+    Promise.all([
+      supabase.from('caregiver_skills').select('skill_id').eq('caregiver_id', caregiver.id),
+      supabase.from('caregiver_restrictions').select('restriction_id').eq('caregiver_id', caregiver.id),
+      supabase.from('caregiver_availability').select('*').eq('caregiver_id', caregiver.id),
+      supabase.from('caregiver_time_off').select('*').eq('caregiver_id', caregiver.id).order('starts_at', { ascending: false }),
+      supabase.from('caregiver_credentials').select('*').eq('caregiver_id', caregiver.id),
+      caregiver.profile_id
+        ? supabase.from('profiles').select('email').eq('id', caregiver.profile_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]).then(([skills, restrictions, avail, timeoff, creds, profile]) => {
+      setSkillIds((skills.data || []).map((r) => r.skill_id))
+      setRestrictionIds((restrictions.data || []).map((r) => r.restriction_id))
+      setAvailList((avail.data || []).map((a) => ({ ...a, _id: a.id })))
+      setTimeOffList((timeoff.data || []).map((t) => ({ ...t, _id: t.id })))
+      setCredList((creds.data || []).map((c) => ({ ...c, _id: c.id })))
+      if (profile.data) setLinkedEmail(profile.data.email)
+      setLoadingExisting(false)
+    })
   }, [caregiver?.id]) // eslint-disable-line
 
   useEffect(() => { setAcctEmail(f.email || '') }, [f.email])
 
   const addAvail = () => {
     if (newAvail.end_time <= newAvail.start_time) return
-    setAvailList((a) => [...a, { ...newAvail, weekday: Number(newAvail.weekday), _id: Date.now() }])
+    setAvailList((a) => [...a, { ...newAvail, weekday: Number(newAvail.weekday), _id: `new-${Date.now()}` }])
   }
   const removeAvail = (id) => setAvailList((a) => a.filter((x) => x._id !== id))
 
   const addTimeOff = () => {
     if (!newTimeOff.starts_at || !newTimeOff.ends_at) return
-    setTimeOffList((t) => [...t, { ...newTimeOff, _id: Date.now() }])
+    setTimeOffList((t) => [...t, { ...newTimeOff, status: 'approved', _id: `new-${Date.now()}` }])
     setNewTimeOff({ starts_at: '', ends_at: '', reason: '' })
   }
   const removeTimeOff = (id) => setTimeOffList((t) => t.filter((x) => x._id !== id))
 
   const addCred = () => {
     if (!newCred.credential_type.trim()) return
-    setCredList((c) => [...c, { ...newCred, _id: Date.now() }])
+    setCredList((c) => [...c, { ...newCred, _id: `new-${Date.now()}` }])
     setNewCred({ credential_type: '', credential_number: '', issued_date: '', expiry_date: '', notes: '' })
   }
   const removeCred = (id) => setCredList((c) => c.filter((x) => x._id !== id))
@@ -136,12 +151,10 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
   const missingSkills = () => {
     const miss = []
     if (skillIds.length === 0) miss.push('Specialized skills')
-    if (isNew && credList.length === 0) miss.push('Credentials (background check, TB test, CPR/First Aid, etc.)')
+    if (credList.length === 0) miss.push('Credentials (background check, TB test, CPR/First Aid, etc.)')
     return miss
   }
-  const missingAvail = () => {
-    return isNew && availList.length === 0 ? ['Weekly availability'] : []
-  }
+  const missingAvail = () => (availList.length === 0 ? ['Weekly availability'] : [])
   const confirmProceed = (missing) => {
     if (missing.length === 0) return true
     return window.confirm(`These fields are still empty:\n\n${missing.join('\n')}\n\nContinue anyway?`)
@@ -170,7 +183,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
 
   const save = async () => {
     setErr('')
-    if (isNew && makeAccount) {
+    if (makeAccount && !linkedEmail) {
       if (!acctEmail.trim()) return setErr('Enter an email for the Care App login, or turn off account creation.')
       if (!acctPassword || acctPassword.length < 8) return setErr('Password must be at least 8 characters.')
     }
@@ -189,41 +202,60 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
         ? supabase.from('caregivers').insert(row).select().single()
         : supabase.from('caregivers').update(row).eq('id', caregiver.id).select().single()
       const { data: saved, error } = await q
-      if (error) throw error
+      if (error) throw new Error(`Caregiver basic info: ${error.message}`)
       const cid = saved.id
 
-      await supabase.from('caregiver_skills').delete().eq('caregiver_id', cid)
-      if (skillIds.length) await supabase.from('caregiver_skills').insert(skillIds.map((s) => ({ caregiver_id: cid, skill_id: s })))
-      await supabase.from('caregiver_restrictions').delete().eq('caregiver_id', cid)
-      if (restrictionIds.length) await supabase.from('caregiver_restrictions').insert(restrictionIds.map((r) => ({ caregiver_id: cid, restriction_id: r })))
+      let r1 = await supabase.from('caregiver_skills').delete().eq('caregiver_id', cid)
+      if (r1.error) throw new Error(`Clearing old skills: ${r1.error.message}`)
+      if (skillIds.length) {
+        const { error } = await supabase.from('caregiver_skills').insert(skillIds.map((s) => ({ caregiver_id: cid, skill_id: s })))
+        if (error) throw new Error(`Saving skills: ${error.message}`)
+      }
 
-      if (isNew) {
-        if (availList.length) {
-          await supabase.from('caregiver_availability').insert(availList.map((a) => ({
-            caregiver_id: cid, weekday: a.weekday, start_time: a.start_time, end_time: a.end_time,
-          })))
-        }
-        if (timeOffList.length) {
-          await supabase.from('caregiver_time_off').insert(timeOffList.map((t) => ({
-            caregiver_id: cid, starts_at: t.starts_at, ends_at: t.ends_at, reason: t.reason, status: 'approved',
-          })))
-        }
-        if (credList.length) {
-          await supabase.from('caregiver_credentials').insert(credList.map((c) => ({
-            caregiver_id: cid, credential_type: c.credential_type, credential_number: c.credential_number,
-            issued_date: c.issued_date || null, expiry_date: c.expiry_date || null, notes: c.notes,
-          })))
-        }
-        if (makeAccount) {
-          const result = await createCaregiverAccount({
-            email: acctEmail.trim(), password: acctPassword, caregiverId: cid, fullName: `${f.first_name} ${f.last_name}`,
-          })
-          if (!result.ok) {
-            setErr(`Caregiver saved, but the login could not be created: ${result.error}. You can try again from the App Account tab.`)
-            setBusy(false)
-            onSaved()
-            return
-          }
+      let r2 = await supabase.from('caregiver_restrictions').delete().eq('caregiver_id', cid)
+      if (r2.error) throw new Error(`Clearing old restrictions: ${r2.error.message}`)
+      if (restrictionIds.length) {
+        const { error } = await supabase.from('caregiver_restrictions').insert(restrictionIds.map((r) => ({ caregiver_id: cid, restriction_id: r })))
+        if (error) throw new Error(`Saving restrictions: ${error.message}`)
+      }
+
+      let r3 = await supabase.from('caregiver_availability').delete().eq('caregiver_id', cid)
+      if (r3.error) throw new Error(`Clearing old availability: ${r3.error.message}`)
+      if (availList.length) {
+        const { error } = await supabase.from('caregiver_availability').insert(availList.map((a) => ({
+          caregiver_id: cid, weekday: a.weekday, start_time: a.start_time, end_time: a.end_time,
+        })))
+        if (error) throw new Error(`Saving availability: ${error.message}`)
+      }
+
+      let r4 = await supabase.from('caregiver_time_off').delete().eq('caregiver_id', cid)
+      if (r4.error) throw new Error(`Clearing old time off: ${r4.error.message}`)
+      if (timeOffList.length) {
+        const { error } = await supabase.from('caregiver_time_off').insert(timeOffList.map((t) => ({
+          caregiver_id: cid, starts_at: t.starts_at, ends_at: t.ends_at, reason: t.reason, status: t.status || 'approved',
+        })))
+        if (error) throw new Error(`Saving time off: ${error.message}`)
+      }
+
+      let r5 = await supabase.from('caregiver_credentials').delete().eq('caregiver_id', cid)
+      if (r5.error) throw new Error(`Clearing old credentials: ${r5.error.message}`)
+      if (credList.length) {
+        const { error } = await supabase.from('caregiver_credentials').insert(credList.map((c) => ({
+          caregiver_id: cid, credential_type: c.credential_type, credential_number: c.credential_number,
+          issued_date: c.issued_date || null, expiry_date: c.expiry_date || null, notes: c.notes,
+        })))
+        if (error) throw new Error(`Saving credentials: ${error.message}`)
+      }
+
+      if (makeAccount && !linkedEmail) {
+        const result = await createCaregiverAccount({
+          email: acctEmail.trim(), password: acctPassword, caregiverId: cid, fullName: `${f.first_name} ${f.last_name}`,
+        })
+        if (!result.ok) {
+          setErr(`Everything else saved, but the login could not be created: ${result.error}. You can try again from the App Account tab.`)
+          setBusy(false)
+          onSaved()
+          return
         }
       }
 
@@ -235,68 +267,16 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
     }
   }
 
-  // Editing an existing caregiver keeps the original single-page form —
-  // ongoing availability/time-off/credentials changes happen in their profile tabs.
-  if (!isNew) {
+  if (loadingExisting) {
     return (
-      <Modal title="Edit caregiver" onClose={onClose} footer={
-        <><button className="btn btn-quiet" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save caregiver'}</button></>
-      }>
-        {err && <p className="notice notice-bad">{err}</p>}
-        <div className="form-row">
-          <Field label="First name"><input value={f.first_name} onChange={set('first_name')} /></Field>
-          <Field label="Last name"><input value={f.last_name} onChange={set('last_name')} /></Field>
-        </div>
-        <div className="form-row">
-          <Field label="Phone"><input value={f.phone || ''} onChange={set('phone')} /></Field>
-          <Field label="Email" help="Used to link their Care App login."><input type="email" value={f.email || ''} onChange={set('email')} /></Field>
-        </div>
-        <div className="form-row-3">
-          <Field label="Type">
-            <select value={f.caregiver_kind} onChange={set('caregiver_kind')}>
-              <option value="hourly">Hourly</option>
-              <option value="live_in">Live-in</option>
-            </select>
-          </Field>
-          <Field label="Pay rate ($/h)"><input type="number" step="0.01" value={f.hourly_rate ?? ''} onChange={set('hourly_rate')} /></Field>
-          <Field label="Mileage ($/mi)"><input type="number" step="0.01" value={f.mileage_rate ?? ''} onChange={set('mileage_rate')} /></Field>
-        </div>
-        <Field label="Notes"><textarea rows={2} value={f.notes || ''} onChange={set('notes')} /></Field>
-        <h3 className="thread mt">Identity & payroll</h3>
-        <div className="form-row-3">
-          <Field label="Employee ID"><input value={f.employee_id || ''} onChange={set('employee_id')} /></Field>
-          <Field label="Employment type">
-            <select value={f.employment_type || ''} onChange={set('employment_type')}>
-              <option value="">Select…</option>
-              <option value="W2">W-2 employee</option>
-              <option value="1099">1099 contractor</option>
-            </select>
-          </Field>
-          <Field label="Payroll ID"><input value={f.payroll_id || ''} onChange={set('payroll_id')} /></Field>
-        </div>
-        <div className="form-row-3">
-          <Field label="Home address"><input value={f.address || ''} onChange={set('address')} /></Field>
-          <Field label="Overtime rate ($/h)"><input type="number" step="0.01" value={f.overtime_rate ?? ''} onChange={set('overtime_rate')} /></Field>
-          <Field label="Max hours/week"><input type="number" step="0.5" value={f.max_hours_per_week ?? ''} onChange={set('max_hours_per_week')} /></Field>
-        </div>
-        <h3 className="thread mt">Emergency contact</h3>
-        <div className="form-row">
-          <Field label="Name"><input value={f.emergency_contact_name || ''} onChange={set('emergency_contact_name')} /></Field>
-          <Field label="Phone"><input value={f.emergency_contact_phone || ''} onChange={set('emergency_contact_phone')} /></Field>
-        </div>
-        <h3 className="thread mt">Skills & matching</h3>
-        <EditableSelect table="skills_list" label="Specialized skills" value={skillIds} onChange={setSkillIds} multi />
-        <EditableSelect table="restrictions_list" label="Client matching restrictions" value={restrictionIds} onChange={setRestrictionIds} multi />
-        <p className="muted" style={{ fontSize: '.84rem' }}>
-          Credentials, availability, and time off are managed from this caregiver's profile tabs.
-        </p>
+      <Modal title="Loading…" onClose={onClose}>
+        <p className="muted">Loading caregiver details…</p>
       </Modal>
     )
   }
 
   return (
-    <Modal title="Register caregiver" onClose={onClose} wide footer={
+    <Modal title={isNew ? 'Register caregiver' : `Edit ${f.first_name} ${f.last_name}`} onClose={onClose} wide footer={
       <>
         {step !== 'basic' && <button className="btn btn-quiet" onClick={goBack} style={{ marginRight: 'auto' }}>Back</button>}
         <button className="btn btn-quiet" onClick={onClose}>Cancel</button>
@@ -420,6 +400,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
               <div style={{ flex: 1 }}>
                 <b>{new Date(t.starts_at).toLocaleDateString()} → {new Date(t.ends_at).toLocaleDateString()}</b>
                 {t.reason && <span className="muted"> · {t.reason}</span>}
+                {t.status && <span className="muted"> · {t.status}</span>}
               </div>
               <button className="btn btn-quiet" onClick={() => removeTimeOff(t._id)}>✕</button>
             </div>
@@ -435,35 +416,40 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
 
       {step === 'account' && (
         <>
-          <div className="field">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={makeAccount} onChange={(e) => setMakeAccount(e.target.checked)} />
-              <span><b>Create their Care App login now</b></span>
-            </label>
-          </div>
-          {makeAccount && (
+          {linkedEmail ? (
+            <p className="notice notice-ok">Already linked to <b>{linkedEmail}</b>. They can sign in to the Care App with this email.</p>
+          ) : (
             <>
-              <div className="form-row">
-                <Field label="Login email"><input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} /></Field>
-                <Field label="Temporary password" help="At least 8 characters. Share this with them securely.">
-                  <input type="text" value={acctPassword} onChange={(e) => setAcctPassword(e.target.value)} />
-                </Field>
+              <div className="field">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={makeAccount} onChange={(e) => setMakeAccount(e.target.checked)} />
+                  <span><b>Create their Care App login now</b></span>
+                </label>
               </div>
-              <p className="muted" style={{ fontSize: '.84rem' }}>
-                This creates a real login instantly — no need to use Supabase directly. They can change their password later from the Care App.
-              </p>
+              {makeAccount && (
+                <>
+                  <div className="form-row">
+                    <Field label="Login email"><input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} /></Field>
+                    <Field label="Temporary password" help="At least 8 characters. Share this with them securely.">
+                      <input type="text" value={acctPassword} onChange={(e) => setAcctPassword(e.target.value)} />
+                    </Field>
+                  </div>
+                  <p className="muted" style={{ fontSize: '.84rem' }}>
+                    This creates a real login instantly — no need to use Supabase directly. They can change their password later from the Care App.
+                  </p>
+                </>
+              )}
+              {!makeAccount && (
+                <p className="muted" style={{ fontSize: '.86rem' }}>You can create their login anytime — just come back to this tab.</p>
+              )}
             </>
-          )}
-          {!makeAccount && (
-            <p className="muted" style={{ fontSize: '.86rem' }}>
-              You can create their login anytime from the App Account tab on their profile.
-            </p>
           )}
         </>
       )}
     </Modal>
   )
 }
+
 function CaregiverDetail({ caregiver, onClose }) {
   const [tab, setTab] = useState('availability')
   const [editing, setEditing] = useState(false)
@@ -494,7 +480,7 @@ function CaregiverDetail({ caregiver, onClose }) {
           {tab === 'availability' && <AvailabilityEditor caregiverId={caregiver.id} />}
           {tab === 'timeoff' && <TimeOffTab caregiverId={caregiver.id} />}
           {tab === 'credentials' && <CredentialsTab caregiverId={caregiver.id} />}
-          {tab === 'account' && <AccountLink caregiver={caregiver} />}
+          {tab === 'account' && <AccountLink caregiver={caregiver} onSaved={onClose} />}
           {tab === 'details' && (
             <>
               <dl className="deflist">
@@ -690,36 +676,62 @@ function AvailabilityEditor({ caregiverId }) {
   )
 }
 
-function AccountLink({ caregiver }) {
-  const [profiles, setProfiles] = useState([])
-  const [choice, setChoice] = useState(caregiver.profile_id || '')
-  const [msg, setMsg] = useState('')
+function AccountLink({ caregiver, onSaved }) {
+  const [linkedEmail, setLinkedEmail] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState(caregiver.email || '')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState(null)
 
   useEffect(() => {
-    supabase.from('profiles').select('id,full_name,email,role').eq('role', 'caregiver')
-      .then(({ data }) => setProfiles(data || []))
-  }, [])
+    if (!caregiver.profile_id) { setLoading(false); return }
+    supabase.from('profiles').select('email').eq('id', caregiver.profile_id).maybeSingle()
+      .then(({ data }) => { setLinkedEmail(data?.email || ''); setLoading(false) })
+  }, [caregiver.profile_id])
 
-  const save = async () => {
-    const { error } = await supabase.from('caregivers')
-      .update({ profile_id: choice || null }).eq('id', caregiver.id)
-    setMsg(error ? error.message : 'Linked. The caregiver can now sign in to the Care App.')
+  const create = async () => {
+    setMsg(null)
+    if (!email.trim()) return setMsg({ kind: 'bad', text: 'Enter an email.' })
+    if (!password || password.length < 8) return setMsg({ kind: 'bad', text: 'Password must be at least 8 characters.' })
+    setBusy(true)
+    const result = await createCaregiverAccount({
+      email: email.trim(), password, caregiverId: caregiver.id, fullName: fullName(caregiver),
+    })
+    setBusy(false)
+    if (!result.ok) return setMsg({ kind: 'bad', text: result.error })
+    setMsg({ kind: 'ok', text: 'Login created. The caregiver can now sign in to the Care App.' })
+    setLinkedEmail(email.trim())
+    onSaved?.()
+  }
+
+  const unlink = async () => {
+    if (!confirm('Unlink this login? The caregiver will no longer be able to sign in until relinked.')) return
+    await supabase.from('caregivers').update({ profile_id: null }).eq('id', caregiver.id)
+    setLinkedEmail('')
+    onSaved?.()
+  }
+
+  if (loading) return <p className="muted">Loading…</p>
+
+  if (linkedEmail) {
+    return (
+      <>
+        <p className="notice notice-ok">Linked to <b>{linkedEmail}</b>. They can sign in to the Care App with this email.</p>
+        <button className="btn btn-outline" onClick={unlink}>Unlink login</button>
+      </>
+    )
   }
 
   return (
     <>
-      <p className="muted" style={{ fontSize: '.88rem' }}>
-        1) Create the caregiver's login in Supabase (Authentication → Add user) or send them an invite. 
-        2) Their profile appears below — link it here so the Care App shows their shifts.
-      </p>
-      <Field label="Care App login">
-        <select value={choice} onChange={(e) => setChoice(e.target.value)}>
-          <option value="">— Not linked —</option>
-          {profiles.map((p) => <option key={p.id} value={p.id}>{p.full_name} ({p.email})</option>)}
-        </select>
-      </Field>
-      {msg && <p className="notice notice-ok">{msg}</p>}
-      <button className="btn btn-primary" onClick={save}>Save link</button>
+      <p className="muted" style={{ fontSize: '.88rem' }}>No Care App login yet — create one below.</p>
+      {msg && <p className={`notice ${msg.kind === 'ok' ? 'notice-ok' : 'notice-bad'}`}>{msg.text}</p>}
+      <div className="form-row">
+        <Field label="Login email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+        <Field label="Temporary password" help="At least 8 characters."><input type="text" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+      </div>
+      <button className="btn btn-primary" onClick={create} disabled={busy}>{busy ? 'Creating…' : 'Create login'}</button>
     </>
   )
 }
