@@ -20,10 +20,11 @@ export function UnreadProvider({ children }) {
 
   const recheckMsg = useCallback(async () => {
     if (!caregiver) return
-    const { data: th } = await supabase.from('message_threads').select('id').eq('caregiver_id', caregiver.id).maybeSingle()
-    if (!th) { setUnreadMsg(0); return }
+    const { data: threads } = await supabase.from('message_threads').select('id').eq('caregiver_id', caregiver.id)
+    const ids = (threads || []).map((t) => t.id)
+    if (ids.length === 0) { setUnreadMsg(0); return }
     const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true })
-      .eq('thread_id', th.id).is('read_at', null).neq('sender_id', caregiver.profile_id || '')
+      .in('thread_id', ids).is('read_at', null).neq('sender_id', caregiver.profile_id || '')
     setUnreadMsg(count || 0)
   }, [caregiver])
 
