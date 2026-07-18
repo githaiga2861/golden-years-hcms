@@ -67,7 +67,14 @@ export default function Notifications() {
     recheckUpdates()
   }
 
-  if (!caregiver) return null
+  if (!caregiver) {
+    return (
+      <>
+        <h1 style={{ marginBottom: 0 }}>Updates</h1>
+        <p className="muted" style={{ marginTop: 0 }}>Loading…</p>
+      </>
+    )
+  }
 
   return (
     <>

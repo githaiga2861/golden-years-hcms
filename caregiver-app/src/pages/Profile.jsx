@@ -14,6 +14,7 @@ const statusPill = (expiry) => {
 export default function Profile() {
   const { caregiver, session, signOut } = useAuth()
   const [pending, setPending] = useState(pendingCount())
+  const [updateInfo, setUpdateInfo] = useState({ checking: true, available: false, error: false })
   const [credentials, setCredentials] = useState([])
   const [timeOff, setTimeOff] = useState([])
   const [showRequest, setShowRequest] = useState(false)
@@ -26,6 +27,14 @@ export default function Profile() {
       .order('expiry_date', { nullsFirst: false }).then(({ data }) => setCredentials(data || []))
     loadTimeOff()
   }, [caregiver]) // eslint-disable-line
+
+  useEffect(() => {
+    const current = import.meta.env.VITE_APP_VERSION || 'dev'
+    fetch('https://githaiga2861.github.io/golden-years-hcms/downloads/version.json', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => setUpdateInfo({ checking: false, available: data.version !== current, error: false, live: data }))
+      .catch(() => setUpdateInfo({ checking: false, available: false, error: true }))
+  }, [])
 
   const loadTimeOff = () => {
     if (!caregiver) return
@@ -120,6 +129,28 @@ export default function Profile() {
         <h3>Need help?</h3>
         <p className="muted" style={{ fontSize: '.9rem' }}>Call the Golden Years office: <a href="tel:+12067171234">(206) 717-1234</a></p>
       </div>
+      <div className="card">
+        <h3>App updates</h3>
+        {updateInfo.checking && <p className="muted" style={{ fontSize: '.9rem' }}>Checking for updates…</p>}
+        {!updateInfo.checking && updateInfo.error && (
+          <p className="muted" style={{ fontSize: '.9rem' }}>Couldn't check for updates right now — try again later.</p>
+        )}
+        {!updateInfo.checking && !updateInfo.error && !updateInfo.available && (
+          <p style={{ fontSize: '.9rem' }}><span className="pill pill-ok">Up to date</span></p>
+        )}
+        {!updateInfo.checking && !updateInfo.error && updateInfo.available && (
+          <>
+            <p style={{ fontSize: '.9rem', marginBottom: '.6rem' }}><span className="pill pill-gold">Update available</span></p>
+            <a className="btn btn-primary" href="https://githaiga2861.github.io/golden-years-hcms/downloads/golden-years-care.apk" download style={{ display: 'inline-block' }}>
+              Download update
+            </a>
+            <p className="muted" style={{ fontSize: '.78rem', marginTop: '.5rem' }}>
+              Open the downloaded file and tap Install. This updates the app in place — your login and data stay exactly as they are, as long as you don't uninstall first.
+            </p>
+          </>
+        )}
+      </div>
+
       <button className="btn btn-outline" onClick={signOut}>Sign out</button>
     </>
   )

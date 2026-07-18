@@ -21,8 +21,10 @@ const ChatIcon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" str
 const SyncIcon = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
 
 function SyncButton() {
-  const { spinning, refresh } = useRefresh()
+  const { tick, refresh } = useRefresh()
   const [pending, setPending] = useState(pendingCount())
+  const [busy, setBusy] = useState(false)
+  const [flash, setFlash] = useState('')
 
   useEffect(() => {
     const t = setInterval(() => setPending(pendingCount()), 4000)
@@ -30,26 +32,47 @@ function SyncButton() {
   }, [])
 
   const onClick = async () => {
+    if (busy) return
+    setBusy(true)
     refresh()
-    if (navigator.onLine) await syncQueue(setPending)
+    if (navigator.onLine) {
+      const before = pendingCount()
+      await syncQueue(setPending)
+      const after = pendingCount()
+      setFlash(before > after ? `Synced ${before - after} item${before - after === 1 ? '' : 's'}` : 'Up to date')
+    } else {
+      setFlash("You're offline")
+    }
+    setTimeout(() => setBusy(false), 650)
+    setTimeout(() => setFlash(''), 2200)
   }
 
   return (
-    <button onClick={onClick} aria-label="Sync now" title="Sync now"
-      style={{
-        position: 'relative', width: 34, height: 34, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.5)',
-        background: 'rgba(255,255,255,.12)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center', marginLeft: 'auto',
-      }}>
-      <span style={{ display: 'block', transition: 'transform .6s ease', transform: spinning ? 'rotate(360deg)' : 'rotate(0deg)' }}>
-        {SyncIcon}
-      </span>
-      {pending > 0 && (
+    <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+      {flash && (
         <span style={{
-          position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-          fontSize: '.68rem', fontWeight: 700, background: 'var(--blue-ink)', borderRadius: '50%',
-        }}>{pending}</span>
+          position: 'absolute', right: 42, top: '50%', transform: 'translateY(-50%)',
+          background: 'rgba(0,0,0,.75)', color: '#fff', fontSize: '.72rem', padding: '.25rem .55rem',
+          borderRadius: 6, whiteSpace: 'nowrap',
+        }}>{flash}</span>
       )}
-    </button>
+      <button onClick={onClick} aria-label="Sync now" title="Sync now"
+        style={{
+          position: 'relative', width: 34, height: 34, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.5)',
+          background: 'rgba(255,255,255,.12)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center',
+        }}>
+        <span style={{ display: 'block', transition: 'transform .6s ease', transform: `rotate(${tick * 360}deg)` }}>
+          {SyncIcon}
+        </span>
+        {pending > 0 && (
+          <span style={{
+            position: 'absolute', top: -3, right: -3, minWidth: 16, height: 16, padding: '0 3px',
+            display: 'grid', placeItems: 'center', fontSize: '.62rem', fontWeight: 700, lineHeight: 1,
+            background: 'var(--gold)', color: 'var(--blue-ink)', borderRadius: '50%', border: '1.5px solid var(--blue-ink)',
+          }}>{pending}</span>
+        )}
+      </button>
+    </div>
   )
 }
 
