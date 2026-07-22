@@ -32,9 +32,9 @@ export default function Today() {
   if (!caregiver) {
     return (
       <div className="card">
-        <h2>Almost there</h2>
+        <h2>Almost there (v2 test)</h2>
         <p className="muted">Your login isn't linked to a caregiver record yet. Please contact the office so they can link your account.</p>
-        <p className="muted" style={{ fontSize: '.75rem', marginTop: '.8rem', wordBreak: 'break-all' }}>
+        <p className="muted" style={{ fontSize: '.9rem', marginTop: '.8rem', wordBreak: 'break-all', background: '#fff3cd', padding: '.5rem', borderRadius: 6 }}>
           Diagnostic — auth user id: {session?.user?.id || 'none'}<br />
           Lookup result: {lookupError || 'ok'}
         </p>
