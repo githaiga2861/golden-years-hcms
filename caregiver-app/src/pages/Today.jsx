@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 const fmtT = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
 export default function Today() {
-  const { caregiver, lookupError, session } = useAuth()
+  const { caregiver } = useAuth()
   const [shifts, setShifts] = useState([])
   const [visits, setVisits] = useState({})
 
@@ -32,12 +32,8 @@ export default function Today() {
   if (!caregiver) {
     return (
       <div className="card">
-        <h2>Almost there (v2 test)</h2>
+        <h2>Almost there</h2>
         <p className="muted">Your login isn't linked to a caregiver record yet. Please contact the office so they can link your account.</p>
-        <p className="muted" style={{ fontSize: '.9rem', marginTop: '.8rem', wordBreak: 'break-all', background: '#fff3cd', padding: '.5rem', borderRadius: 6 }}>
-          Diagnostic — auth user id: {session?.user?.id || 'none'}<br />
-          Lookup result: {lookupError || 'ok'}
-        </p>
       </div>
     )
   }
