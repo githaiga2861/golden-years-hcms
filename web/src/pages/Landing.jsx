@@ -73,7 +73,7 @@ export default function Landing() {
           <div className="app-card">
             <h2 className="thread">Golden Years Care App</h2>
             <p>For caregivers — clock in and out, see your schedule and each client's care plan, complete ADL checklists, and write visit notes. Install it on your phone and sign in only inside the app, with instructions from the office.</p>
-            <a className="btn btn-gold mt" href={`${import.meta.env.BASE_URL}downloads/golden-years-care.apk`} download>
+            <a className="btn btn-gold mt" href={`${import.meta.env.BASE_URL}downloads/golden-years-care.apk?t=${Date.now()}`} download>
               Download the Android App
             </a>
             <p className="muted" style={{ fontSize: '.8rem', marginTop: '.7rem' }}>
