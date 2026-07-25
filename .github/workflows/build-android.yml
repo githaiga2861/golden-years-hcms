@@ -84,6 +84,13 @@ jobs:
           git diff --cached --quiet || git commit -m "Auto-build: update Android APK [skip ci]"
           git push
 
+      - name: Notify caregivers of the new app version
+        run: |
+          curl -s -X POST "https://ufqbrqlthbviajnrybnm.supabase.co/rest/v1/rpc/notify_all_app_update" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" -d '{}'
+
       - name: Upload APK as a build artifact too
         uses: actions/upload-artifact@v4
         with:

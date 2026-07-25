@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink, Navigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { RefreshProvider, useRefresh } from './context/RefreshContext'
@@ -7,6 +7,9 @@ import { UpdateProvider, useUpdate } from './context/UpdateContext'
 import { TutorialProvider } from './context/TutorialContext'
 import TutorialOverlay from './components/TutorialOverlay'
 import TutorialPrompt from './components/TutorialPrompt'
+import NotificationBell from './components/NotificationBell'
+import { registerPush } from './lib/push'
+import { setNavigator } from './lib/navigation'
 import { startSyncLoop, syncQueue, pendingCount } from './lib/offline'
 import logo from './assets/logo.png'
 import Login from './pages/Login'
@@ -54,7 +57,7 @@ function SyncButton() {
   }
 
   return (
-    <div data-tutorial="sync-button" style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+    <div data-tutorial="sync-button" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       {flash && (
         <span style={{
           position: 'absolute', right: 42, top: '50%', transform: 'translateY(-50%)',
@@ -94,6 +97,13 @@ function Frame() {
   const { unreadUpdates: unread, unreadMsg } = useUnread()
   const [online, setOnline] = useState(navigator.onLine)
   const [pending, setPending] = useState(pendingCount())
+  const navigate = useNavigate()
+
+  useEffect(() => { setNavigator(navigate) }, [navigate])
+
+  useEffect(() => {
+    if (caregiver?.id) registerPush(caregiver.id)
+  }, [caregiver?.id])
 
   useEffect(() => {
     startSyncLoop((left) => setPending(left))
@@ -111,7 +121,10 @@ function Frame() {
         <img className="brand-mark" src={logo} alt="Golden Years" />
         <b>Golden Years Care</b>
         {!online && <span className="offline-pill">Offline — {pending} task{pending === 1 ? '' : 's'} waiting to sync</span>}
-        <SyncButton />
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+          <NotificationBell />
+          <SyncButton />
+        </div>
       </header>
       <main className="content"><Outlet key={tick} /></main>
       <nav className="tabbar">

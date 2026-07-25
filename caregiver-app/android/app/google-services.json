@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "377079201054",
+    "project_id": "golden-years-hcms-98024",
+    "storage_bucket": "golden-years-hcms-98024.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377079201054:android:1a502f5d4405bbcd2d9d0f",
+        "android_client_info": {
+          "package_name": "com.goldenyearshomehealthllc.careapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCP8hbJbgwhUJB2hbSDWEFrCoUyQq315Y4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
