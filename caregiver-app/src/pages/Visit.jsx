@@ -6,6 +6,7 @@ import { getPosition, distanceM } from '../lib/geo'
 import { drivingDistanceMiles } from '../lib/googleMaps'
 import { enqueue, syncQueue } from '../lib/offline'
 import SignaturePad, { getCanvasBlob } from '../components/SignaturePad'
+import TutorialVisitDemo from '../components/TutorialVisitDemo'
 
 const fmtT = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const WarnIcon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-3px', marginRight: '.35rem' }}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -18,6 +19,7 @@ const WarnIcon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" str
 export default function Visit() {
   const { shiftId } = useParams()
   const nav = useNavigate()
+  if (shiftId === 'demo-shift-1') return <TutorialVisitDemo />
   const { caregiver, session } = useAuth()
 
   const [shift, setShift] = useState(null)

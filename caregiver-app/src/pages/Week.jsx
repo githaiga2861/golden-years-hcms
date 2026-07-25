@@ -75,9 +75,9 @@ export default function Week() {
     <>
       <h1>Your schedule</h1>
       <div className="toolbar mb" style={{ display: 'flex', gap: '.4rem' }}>
-        <button className={`btn ${tab === 'upcoming' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('upcoming')}>Upcoming</button>
-        <button className={`btn ${tab === 'open' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('open')}>Open shifts</button>
-        <button className={`btn ${tab === 'past' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('past')}>Past & hours</button>
+        <button data-tutorial="week-upcoming-tab" className={`btn ${tab === 'upcoming' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('upcoming')}>Upcoming</button>
+        <button data-tutorial="week-open-tab" className={`btn ${tab === 'open' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('open')}>Open shifts</button>
+        <button data-tutorial="week-past-tab" className={`btn ${tab === 'past' ? 'btn-primary' : 'btn-outline'}`} style={{ flex: 1, fontSize: '.86rem' }} onClick={() => setTab('past')}>Past & hours</button>
       </div>
 
       {tab === 'upcoming' && (

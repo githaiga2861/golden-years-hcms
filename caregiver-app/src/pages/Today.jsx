@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTutorial } from '../context/TutorialContext'
+import { DEMO_SHIFTS } from '../lib/tutorialDemoData'
 
 const fmtT = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
 export default function Today() {
   const { caregiver } = useAuth()
+  const tutorial = useTutorial()
   const [shifts, setShifts] = useState([])
   const [visits, setVisits] = useState({})
 
   useEffect(() => {
+    if (tutorial?.running) { setShifts(DEMO_SHIFTS); setVisits({}); return }
     if (!caregiver) return
     const d0 = new Date(); d0.setHours(0, 0, 0, 0)
     const d1 = new Date(d0); d1.setDate(d1.getDate() + 1)
@@ -27,7 +31,7 @@ export default function Today() {
           setVisits(Object.fromEntries((v || []).map((x) => [x.shift_id, x])))
         }
       })
-  }, [caregiver])
+  }, [caregiver, tutorial?.running])
 
   if (!caregiver) {
     return (
@@ -50,7 +54,7 @@ export default function Today() {
         const v = visits[s.id]
         const state = v?.clock_out_at ? 'done' : v?.clock_in_at ? 'active' : 'upcoming'
         return (
-          <Link key={s.id} to={`/visit/${s.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link key={s.id} to={`/visit/${s.id}`} data-tutorial="today-shift-card" style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="card">
               <div className="shift-line" style={{ border: 'none', padding: 0 }}>
                 <div className="timebox"><b>{fmtT(s.starts_at)}</b><span>to {fmtT(s.ends_at)}</span></div>

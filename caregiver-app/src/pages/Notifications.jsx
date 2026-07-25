@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
 import { useUpdate } from '../context/UpdateContext'
+import { useTutorial } from '../context/TutorialContext'
+import { DEMO_UPDATES } from '../lib/tutorialDemoData'
 
 const fmtWhen = (d) => {
   const diffMin = Math.round((Date.now() - new Date(d)) / 60000)
@@ -20,9 +22,11 @@ export default function Notifications() {
   const { caregiver } = useAuth()
   const { recheckUpdates } = useUnread()
   const { available: updateAvailable, apkUrl } = useUpdate()
+  const tutorial = useTutorial()
   const [items, setItems] = useState([])
 
   const load = async () => {
+    if (tutorial?.running) { setItems(DEMO_UPDATES); return }
     if (!caregiver) return
     const { data: shiftClients } = await supabase.from('shifts')
       .select('client_id, clients(first_name,last_name)').eq('caregiver_id', caregiver.id)
@@ -48,7 +52,7 @@ export default function Notifications() {
     const merged = [...clientItems, ...shiftItems].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     setItems(merged)
   }
-  useEffect(() => { load() }, [caregiver?.id]) // eslint-disable-line
+  useEffect(() => { load() }, [caregiver?.id, tutorial?.running]) // eslint-disable-line
 
   const markRead = async (item) => {
     if (!item.unread) return
@@ -102,10 +106,10 @@ export default function Notifications() {
         <div className="empty"><h3>No updates yet</h3><p>You'll see it here when the office changes something for you or your clients.</p></div>
       )}
 
-      {items.map((i) => (
-        <div key={`${i.kind}-${i.id}`} className="card" onClick={() => markRead(i)}
+      {items.map((i, idx) => (
+        <div key={`${i.kind}-${i.id}`} className="card" data-tutorial={idx === 0 ? 'updates-list' : undefined} onClick={() => markRead(i)}
           style={{ borderLeft: i.unread ? '4px solid var(--gold)' : '4px solid transparent', cursor: i.unread ? 'pointer' : 'default' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div data-tutorial={idx === 0 ? 'updates-item' : undefined} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span className={`pill ${i.kind === 'shift' ? 'pill-warn' : 'pill-info'}`}>{TYPE_LABEL[i.update_type] || 'Update'}</span>
             {i.unread && <span className="pill pill-gold">New</span>}
           </div>

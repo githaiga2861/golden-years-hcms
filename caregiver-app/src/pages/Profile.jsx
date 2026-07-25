@@ -1,5 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { useUpdate } from '../context/UpdateContext'
+import { useTutorial } from '../context/TutorialContext'
+import { DEMO_CREDENTIALS } from '../lib/tutorialDemoData'
 import { pendingCount, syncQueue } from '../lib/offline'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -15,6 +17,7 @@ const statusPill = (expiry) => {
 export default function Profile() {
   const { caregiver, session, signOut } = useAuth()
   const updateInfo = useUpdate()
+  const tutorial = useTutorial()
   const [pending, setPending] = useState(pendingCount())
   const [credentials, setCredentials] = useState([])
   const [timeOff, setTimeOff] = useState([])
@@ -24,11 +27,12 @@ export default function Profile() {
   const [showPwd, setShowPwd] = useState(false)
 
   useEffect(() => {
+    if (tutorial?.running) { setCredentials(DEMO_CREDENTIALS); setTimeOff([]); return }
     if (!caregiver) return
     supabase.from('caregiver_credentials').select('*').eq('caregiver_id', caregiver.id)
       .order('expiry_date', { nullsFirst: false }).then(({ data }) => setCredentials(data || []))
     loadTimeOff()
-  }, [caregiver]) // eslint-disable-line
+  }, [caregiver, tutorial?.running]) // eslint-disable-line
 
   const loadTimeOff = () => {
     if (!caregiver) return
@@ -52,19 +56,20 @@ export default function Profile() {
   return (
     <>
       <h1>Profile</h1>
-      <div className="card">
+      <div className="card" data-tutorial="profile-header-card">
         <h3>{caregiver ? `${caregiver.first_name} ${caregiver.last_name}` : session?.user?.email}</h3>
         <p className="muted" style={{ fontSize: '.9rem' }}>{session?.user?.email}</p>
         {caregiver?.mileage_rate && (
           <p className="muted" style={{ fontSize: '.86rem' }}>Mileage reimbursed at ${Number(caregiver.mileage_rate).toFixed(2)}/mile between clients.</p>
         )}
-        <button className="btn btn-outline" style={{ marginTop: '.6rem' }} onClick={() => setShowPwd(true)}>Change password</button>
+        <button className="btn btn-outline" data-tutorial="profile-change-password" style={{ marginTop: '.6rem' }} onClick={() => setShowPwd(true)}>Change password</button>
+        <button className="btn btn-outline" style={{ marginTop: '.5rem' }} onClick={() => tutorial?.start()}>Retake the app tour</button>
       </div>
 
       {showPwd && <ChangePasswordModal email={session?.user?.email} onClose={() => setShowPwd(false)} />}
 
       {credentials.length > 0 && (
-        <div className="card">
+        <div className="card" data-tutorial="profile-credentials">
           <h3>My credentials</h3>
           {credentials.map((c) => (
             <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.5rem 0', borderBottom: '1px solid var(--line)' }}>
@@ -80,7 +85,7 @@ export default function Profile() {
         </div>
       )}
 
-      <div className="card">
+      <div className="card" data-tutorial="profile-timeoff">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>Time off</h3>
           <button className="btn btn-outline" onClick={() => setShowRequest((v) => !v)}>
@@ -111,7 +116,7 @@ export default function Profile() {
         ))}
       </div>
 
-      <div className="card">
+      <div className="card" data-tutorial="profile-offline">
         <h3>Offline uploads</h3>
         <p className="muted" style={{ fontSize: '.9rem' }}>
           {pending === 0 ? 'Everything is synced. ✓' : `${pending} action${pending > 1 ? 's' : ''} waiting to upload.`}
@@ -126,7 +131,7 @@ export default function Profile() {
         <h3>Need help?</h3>
         <p className="muted" style={{ fontSize: '.9rem' }}>Call the Golden Years office: <a href="tel:+12067171234">(206) 717-1234</a></p>
       </div>
-      <div className="card">
+      <div className="card" data-tutorial="profile-updates-card">
         <h3>App updates</h3>
         {updateInfo.checking && <p className="muted" style={{ fontSize: '.9rem' }}>Checking for updates…</p>}
         {!updateInfo.checking && updateInfo.error && (
@@ -148,7 +153,7 @@ export default function Profile() {
         )}
       </div>
 
-      <button className="btn btn-outline" onClick={signOut}>Sign out</button>
+      <button className="btn btn-outline" data-tutorial="profile-signout" onClick={signOut}>Sign out</button>
     </>
   )
 }

@@ -4,6 +4,9 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { RefreshProvider, useRefresh } from './context/RefreshContext'
 import { UnreadProvider, useUnread } from './context/UnreadContext'
 import { UpdateProvider, useUpdate } from './context/UpdateContext'
+import { TutorialProvider } from './context/TutorialContext'
+import TutorialOverlay from './components/TutorialOverlay'
+import TutorialPrompt from './components/TutorialPrompt'
 import { startSyncLoop, syncQueue, pendingCount } from './lib/offline'
 import logo from './assets/logo.png'
 import Login from './pages/Login'
@@ -51,7 +54,7 @@ function SyncButton() {
   }
 
   return (
-    <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+    <div data-tutorial="sync-button" style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
       {flash && (
         <span style={{
           position: 'absolute', right: 42, top: '50%', transform: 'translateY(-50%)',
@@ -112,15 +115,15 @@ function Frame() {
       </header>
       <main className="content"><Outlet key={tick} /></main>
       <nav className="tabbar">
-        <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{SunIcon}</span>Today</NavLink>
-        <NavLink to="/week" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{GridIcon}</span>Schedule</NavLink>
-        <NavLink to="/updates" className={({ isActive }) => isActive ? 'active' : ''}>
+        <NavLink to="/" end data-tutorial="nav-today" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{SunIcon}</span>Today</NavLink>
+        <NavLink to="/week" data-tutorial="nav-schedule" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{GridIcon}</span>Schedule</NavLink>
+        <NavLink to="/updates" data-tutorial="nav-updates" className={({ isActive }) => isActive ? 'active' : ''}>
           <span className="ic">{BellIcon}</span>Updates{unread > 0 && <span className="badge" style={{ marginLeft: 4 }}>{unread}</span>}
         </NavLink>
-        <NavLink to="/messages" className={({ isActive }) => isActive ? 'active' : ''}>
+        <NavLink to="/messages" data-tutorial="nav-messages" className={({ isActive }) => isActive ? 'active' : ''}>
           <span className="ic">{ChatIcon}</span>Messages{unreadMsg > 0 && <span className="badge" style={{ marginLeft: 4 }}>{unreadMsg}</span>}
         </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{UserIcon}</span>Profile</NavLink>
+        <NavLink to="/profile" data-tutorial="nav-profile" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{UserIcon}</span>Profile</NavLink>
       </nav>
     </div>
   )
@@ -140,17 +143,21 @@ export default function App() {
       <UpdateProvider>
       <RefreshProvider>
         <BrowserRouter>
-          <Routes>
-            <Route element={<Gate><Frame /></Gate>}>
-              <Route path="/" element={<Today />} />
-              <Route path="/week" element={<Week />} />
-              <Route path="/visit/:shiftId" element={<Visit />} />
-              <Route path="/updates" element={<Notifications />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/profile" element={<Profile />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <TutorialProvider>
+            <Routes>
+              <Route element={<Gate><Frame /></Gate>}>
+                <Route path="/" element={<Today />} />
+                <Route path="/week" element={<Week />} />
+                <Route path="/visit/:shiftId" element={<Visit />} />
+                <Route path="/updates" element={<Notifications />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <TutorialOverlay />
+            <TutorialPrompt />
+          </TutorialProvider>
         </BrowserRouter>
       </RefreshProvider>
       </UpdateProvider>

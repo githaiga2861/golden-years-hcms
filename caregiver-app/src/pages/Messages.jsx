@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
+import { useTutorial } from '../context/TutorialContext'
+import { DEMO_THREADS, DEMO_LAST_MSG, DEMO_MESSAGES } from '../lib/tutorialDemoData'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -14,6 +16,7 @@ const fmtShort = (d) => {
 export default function Messages() {
   const { caregiver, session } = useAuth()
   const { recheckMsg } = useUnread()
+  const tutorial = useTutorial()
   const [threads, setThreads] = useState([])
   const [lastMsg, setLastMsg] = useState({})
   const [unread, setUnread] = useState({})
@@ -26,6 +29,7 @@ export default function Messages() {
   const textRef = useRef(null)
 
   const loadThreads = async () => {
+    if (tutorial?.running) { setThreads(DEMO_THREADS); setLastMsg(DEMO_LAST_MSG); setUnread({}); return }
     if (!caregiver) return
     const { data: t } = await supabase.from('message_threads').select('*').eq('caregiver_id', caregiver.id)
       .order('created_at', { ascending: false })
@@ -42,9 +46,10 @@ export default function Messages() {
     for (const r of unreadRows || []) counts[r.thread_id] = (counts[r.thread_id] || 0) + 1
     setUnread(counts)
   }
-  useEffect(() => { loadThreads() }, [caregiver?.id]) // eslint-disable-line
+  useEffect(() => { loadThreads() }, [caregiver?.id, tutorial?.running]) // eslint-disable-line
 
   const openThread = async (th) => {
+    if (tutorial?.running) { setSelected(th); setMessages(DEMO_MESSAGES[th.id] || []); return }
     setSelected(th)
     const { data: m } = await supabase.from('messages').select('*, profiles(full_name)')
       .eq('thread_id', th.id).order('created_at')
@@ -111,7 +116,7 @@ export default function Messages() {
                   boxShadow: '0 1px 2px rgba(10,37,64,.08)',
                 }}>
                   <div style={{ fontSize: '.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
-                  <div style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
+                  <div data-tutorial="messages-read-receipt" style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
                     {mine ? (
                       <>Sent {fmtTime(m.created_at)}{m.read_at && ` · Read ${fmtTime(m.read_at)}`}</>
                     ) : (
@@ -145,28 +150,30 @@ export default function Messages() {
       {threads.length === 0 && (
         <div className="empty"><h3>No conversations yet</h3><p>Tap the button below to message the office.</p></div>
       )}
-      {threads.map((t) => {
-        const last = lastMsg[t.id]
-        const unreadCount = unread[t.id] || 0
-        return (
-          <button key={t.id} onClick={() => openThread(t)}
-            style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', marginBottom: '.5rem',
-              border: '1px solid var(--line)', borderRadius: 12, padding: '.8rem .9rem', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <b style={{ fontSize: '.95rem' }}>{t.subject}</b>
-              {last && <span className="muted" style={{ fontSize: '.72rem', flexShrink: 0, marginLeft: '.4rem' }}>{fmtShort(last.last_at)}</span>}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.2rem' }}>
-              <span className="muted" style={{ fontSize: '.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {last?.last_body || 'No messages yet'}
-              </span>
-              {unreadCount > 0 && <span className="badge" style={{ flexShrink: 0, marginLeft: '.4rem' }}>{unreadCount}</span>}
-            </div>
-          </button>
-        )
-      })}
+      <div data-tutorial="messages-thread-list">
+        {threads.map((t, i) => {
+          const last = lastMsg[t.id]
+          const unreadCount = unread[t.id] || 0
+          return (
+            <button key={t.id} data-tutorial={i === 0 ? 'messages-thread-item' : undefined} onClick={() => openThread(t)}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', marginBottom: '.5rem',
+                border: '1px solid var(--line)', borderRadius: 12, padding: '.8rem .9rem', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <b style={{ fontSize: '.95rem' }}>{t.subject}</b>
+                {last && <span className="muted" style={{ fontSize: '.72rem', flexShrink: 0, marginLeft: '.4rem' }}>{fmtShort(last.last_at)}</span>}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.2rem' }}>
+                <span className="muted" style={{ fontSize: '.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {last?.last_body || 'No messages yet'}
+                </span>
+                {unreadCount > 0 && <span className="badge" style={{ flexShrink: 0, marginLeft: '.4rem' }}>{unreadCount}</span>}
+              </div>
+            </button>
+          )
+        })}
+      </div>
 
-      <button onClick={() => setShowNew(true)}
+      <button data-tutorial="messages-new-btn" onClick={() => setShowNew(true)}
         style={{
           position: 'fixed', bottom: 84, right: 20, width: 58, height: 58, borderRadius: '50%',
           background: 'var(--gold)', color: 'var(--blue-ink)', border: 'none', fontSize: '1.6rem',
