@@ -21,6 +21,7 @@ export default function Profile() {
   const [showRequest, setShowRequest] = useState(false)
   const [req, setReq] = useState({ starts_at: '', ends_at: '', reason: '' })
   const [reqErr, setReqErr] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
 
   useEffect(() => {
     if (!caregiver) return
@@ -57,7 +58,10 @@ export default function Profile() {
         {caregiver?.mileage_rate && (
           <p className="muted" style={{ fontSize: '.86rem' }}>Mileage reimbursed at ${Number(caregiver.mileage_rate).toFixed(2)}/mile between clients.</p>
         )}
+        <button className="btn btn-outline" style={{ marginTop: '.6rem' }} onClick={() => setShowPwd(true)}>Change password</button>
       </div>
+
+      {showPwd && <ChangePasswordModal email={session?.user?.email} onClose={() => setShowPwd(false)} />}
 
       {credentials.length > 0 && (
         <div className="card">
@@ -146,5 +150,67 @@ export default function Profile() {
 
       <button className="btn btn-outline" onClick={signOut}>Sign out</button>
     </>
+  )
+}
+
+function ChangePasswordModal({ email, onClose }) {
+  const [current, setCurrent] = useState('')
+  const [next, setNext] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState(false)
+
+  const save = async () => {
+    setErr('')
+    if (!current) return setErr('Enter your current password.')
+    if (!next || next.length < 8) return setErr('New password must be at least 8 characters.')
+    if (next !== confirmPwd) return setErr('New passwords do not match.')
+    setBusy(true)
+    // Verify the current password by attempting to sign in with it.
+    const { error: verifyErr } = await supabase.auth.signInWithPassword({ email, password: current })
+    if (verifyErr) {
+      setBusy(false)
+      return setErr('Your current password is incorrect.')
+    }
+    const { error: updateErr } = await supabase.auth.updateUser({ password: next })
+    setBusy(false)
+    if (updateErr) return setErr(updateErr.message)
+    setDone(true)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,37,64,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: '1rem' }}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, padding: '1.2rem' }}>
+        <h3 style={{ marginTop: 0 }}>Change password</h3>
+        {done ? (
+          <>
+            <p className="notice notice-ok">Your password has been changed.</p>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={onClose}>Done</button>
+          </>
+        ) : (
+          <>
+            {err && <p className="notice notice-bad">{err}</p>}
+            <div className="field">
+              <label>Current password</label>
+              <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>New password</label>
+              <input type="password" value={next} onChange={(e) => setNext(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Confirm new password</label>
+              <input type="password" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', gap: '.5rem', marginTop: '.8rem' }}>
+              <button className="btn btn-quiet" onClick={onClose}>Cancel</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save new password'}</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
