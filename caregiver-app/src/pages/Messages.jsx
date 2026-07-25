@@ -3,10 +3,10 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
 
-const fmtWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
   const diffH = (Date.now() - new Date(d)) / 3600000
-  if (diffH < 24) return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  if (diffH < 24) return fmtTime(d)
   if (diffH < 24 * 7) return new Date(d).toLocaleDateString('en-US', { weekday: 'short' })
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -23,6 +23,7 @@ export default function Messages() {
   const [sending, setSending] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const bottomRef = useRef(null)
+  const textRef = useRef(null)
 
   const loadThreads = async () => {
     if (!caregiver) return
@@ -58,6 +59,13 @@ export default function Messages() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages.length])
 
+  const autoGrow = (el) => {
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px'
+  }
+  useEffect(() => { autoGrow(textRef.current) }, [body])
+
   const send = async () => {
     const text = body.trim()
     if (!text || !selected) return
@@ -80,27 +88,35 @@ export default function Messages() {
 
   if (selected) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 130px)' }}>
-        <button className="btn btn-quiet" style={{ alignSelf: 'flex-start', marginBottom: '.3rem' }} onClick={() => setSelected(null)}>← All conversations</button>
-        <h1 style={{ marginBottom: '.1rem', fontSize: '1.2rem' }}>{selected.subject}</h1>
-        <p className="muted" style={{ marginTop: 0, marginBottom: '.6rem' }}>Chat with the Golden Years office.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 130px)', margin: '0 -1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem', padding: '.6rem 1rem', borderBottom: '1px solid var(--line)', background: '#fff' }}>
+          <button className="btn btn-quiet" style={{ padding: '.2rem .4rem' }} onClick={() => setSelected(null)}>←</button>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '.98rem' }}>{selected.subject}</div>
+            <div className="muted" style={{ fontSize: '.76rem' }}>Golden Years office</div>
+          </div>
+        </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', marginBottom: '.8rem' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: 'var(--paper)' }}>
           {messages.length === 0 && (
             <div className="empty"><h3>No messages yet</h3><p>Send a note to the office below — they'll see it right away.</p></div>
           )}
           {messages.map((m) => {
             const mine = m.sender_id === session.user.id
             return (
-              <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.6rem' }}>
+              <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
                 <div style={{
-                  maxWidth: '78%', padding: '.6rem .8rem', borderRadius: 12,
+                  maxWidth: '78%', padding: '.6rem .85rem', borderRadius: mine ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
                   background: mine ? 'var(--blue)' : '#fff', color: mine ? '#fff' : 'var(--ink)',
-                  border: mine ? 'none' : '1px solid var(--line)',
+                  boxShadow: '0 1px 2px rgba(10,37,64,.08)',
                 }}>
-                  <div style={{ fontSize: '.95rem' }}>{m.body}</div>
-                  <div style={{ fontSize: '.7rem', marginTop: '.25rem', opacity: .75 }}>
-                    {mine ? 'You' : (m.profiles?.full_name || 'Office')} · {fmtWhen(m.created_at)}
+                  <div style={{ fontSize: '.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
+                  <div style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
+                    {mine ? (
+                      <>Sent {fmtTime(m.created_at)}{m.read_at && ` · Read ${fmtTime(m.read_at)}`}</>
+                    ) : (
+                      <>{m.profiles?.full_name || 'Office'} · {fmtTime(m.created_at)}</>
+                    )}
                   </div>
                 </div>
               </div>
@@ -109,12 +125,12 @@ export default function Messages() {
           <div ref={bottomRef} />
         </div>
 
-        <div style={{ display: 'flex', gap: '.5rem' }}>
-          <input value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type a message…"
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), send())}
-            style={{ flex: 1, padding: '.7rem .8rem', border: '1px solid var(--line)', borderRadius: 10 }} />
-          <button className="btn btn-primary" style={{ width: 'auto', padding: '.7rem 1.1rem' }} onClick={send} disabled={sending || !body.trim()}>
-            Send
+        <div style={{ display: 'flex', gap: '.5rem', alignItems: 'flex-end', padding: '.7rem 1rem', borderTop: '1px solid var(--line)', background: '#fff' }}>
+          <textarea ref={textRef} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type a message…" rows={1}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            style={{ flex: 1, padding: '.65rem .85rem', border: '1px solid var(--line)', borderRadius: 18, resize: 'none', maxHeight: 200, fontFamily: 'inherit', fontSize: '.94rem' }} />
+          <button className="btn btn-primary" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, flexShrink: 0 }} onClick={send} disabled={sending || !body.trim()}>
+            ➤
           </button>
         </div>
       </div>
@@ -122,15 +138,12 @@ export default function Messages() {
   }
 
   return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ marginBottom: 0 }}>Messages</h1>
-        <button className="btn btn-primary" style={{ width: 'auto', padding: '.5rem .9rem', fontSize: '.86rem' }} onClick={() => setShowNew(true)}>+ New</button>
-      </div>
+    <div style={{ position: 'relative', minHeight: 'calc(100vh - 160px)' }}>
+      <h1 style={{ marginBottom: 0 }}>Messages</h1>
       <p className="muted" style={{ marginTop: 0, marginBottom: '.8rem' }}>Chat directly with the Golden Years office.</p>
 
       {threads.length === 0 && (
-        <div className="empty"><h3>No conversations yet</h3><p>Tap "+ New" above to message the office.</p></div>
+        <div className="empty"><h3>No conversations yet</h3><p>Tap the button below to message the office.</p></div>
       )}
       {threads.map((t) => {
         const last = lastMsg[t.id]
@@ -138,9 +151,9 @@ export default function Messages() {
         return (
           <button key={t.id} onClick={() => openThread(t)}
             style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', marginBottom: '.5rem',
-              border: '1px solid var(--line)', borderRadius: 10, padding: '.75rem .9rem', cursor: 'pointer' }}>
+              border: '1px solid var(--line)', borderRadius: 12, padding: '.8rem .9rem', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <b style={{ fontSize: '.94rem' }}>{t.subject}</b>
+              <b style={{ fontSize: '.95rem' }}>{t.subject}</b>
               {last && <span className="muted" style={{ fontSize: '.72rem', flexShrink: 0, marginLeft: '.4rem' }}>{fmtShort(last.last_at)}</span>}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.2rem' }}>
@@ -153,6 +166,15 @@ export default function Messages() {
         )
       })}
 
+      <button onClick={() => setShowNew(true)}
+        style={{
+          position: 'fixed', bottom: 84, right: 20, width: 58, height: 58, borderRadius: '50%',
+          background: 'var(--gold)', color: 'var(--blue-ink)', border: 'none', fontSize: '1.6rem',
+          boxShadow: '0 6px 16px rgba(10,37,64,.35)', cursor: 'pointer', zIndex: 20,
+        }} aria-label="Start a new conversation">
+        +
+      </button>
+
       {showNew && (
         <NewConversationModal
           caregiverId={caregiver.id}
@@ -161,7 +183,7 @@ export default function Messages() {
           onCreated={(th) => { setShowNew(false); loadThreads(); openThread(th) }}
         />
       )}
-    </>
+    </div>
   )
 }
 
