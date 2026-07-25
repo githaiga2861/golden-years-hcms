@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 
 const UpdateContext = createContext(null)
 
-const VERSION_URL = 'https://githaiga2861.github.io/golden-years-hcms/downloads/version.json'
-const APK_BASE_URL = 'https://githaiga2861.github.io/golden-years-hcms/downloads/golden-years-care.apk'
+const VERSION_URL = 'https://hcms.goldenyearshomecarewa.com/downloads/version.json'
+const APK_BASE_URL = 'https://hcms.goldenyearshomecarewa.com/downloads/golden-years-care.apk'
 
 export function UpdateProvider({ children }) {
   const [state, setState] = useState({ checking: true, available: false, error: false, apkUrl: APK_BASE_URL })
