@@ -25,12 +25,30 @@ export async function syncQueue(onProgress) {
   syncing = true
   try {
     let q = read()
-    while (q.length > 0) {
-      const a = q[0]
+    let i = 0
+    while (i < q.length) {
+      const a = q[i]
       const ok = await run(a)
-      if (!ok) break            // stop; retry on next sync (order preserved)
-      q = q.slice(1); write(q)
-      onProgress?.(q.length)
+      if (ok) {
+        q.splice(i, 1)
+        write(q)
+        onProgress?.(q.length)
+        continue // re-check the new item now at this index
+      }
+      // Failed — count the retry. After 5 failed attempts (across sync
+      // cycles), this item is permanently broken (e.g. references a
+      // shift or account that no longer exists) — drop it so it can
+      // never block the rest of the queue again.
+      a.retry_count = (a.retry_count || 0) + 1
+      if (a.retry_count >= 5) {
+        console.warn('Dropping permanently-failing offline action:', a)
+        q.splice(i, 1)
+        write(q)
+        onProgress?.(q.length)
+        continue
+      }
+      write(q)
+      i++ // move past this one for now, keep trying the rest
     }
   } finally { syncing = false }
 }

@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
 import { useTutorial } from '../context/TutorialContext'
-import { DEMO_THREADS, DEMO_LAST_MSG, DEMO_MESSAGES } from '../lib/tutorialDemoData'
+import { DEMO_THREADS, DEMO_LAST_MSG, getDemoMessages } from '../lib/tutorialDemoData'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -48,8 +48,23 @@ export default function Messages() {
   }
   useEffect(() => { loadThreads() }, [caregiver?.id, tutorial?.running]) // eslint-disable-line
 
+  // The tutorial can't simulate a real tap into a conversation — so when
+  // its current step needs to show messages inside a thread, open the
+  // demo thread automatically; otherwise show the list as normal.
+  const INSIDE_THREAD_TARGETS = ['messages-bubble', 'messages-read-receipt']
+  useEffect(() => {
+    if (!tutorial?.running) return
+    const wantsInside = INSIDE_THREAD_TARGETS.includes(tutorial.currentStep?.target)
+    if (wantsInside && selected?.id !== 'demo-thread-2') {
+      const th = DEMO_THREADS.find((t) => t.id === 'demo-thread-2')
+      if (th) openThread(th)
+    } else if (!wantsInside && selected) {
+      setSelected(null)
+    }
+  }, [tutorial?.running, tutorial?.currentStep]) // eslint-disable-line
+
   const openThread = async (th) => {
-    if (tutorial?.running) { setSelected(th); setMessages(DEMO_MESSAGES[th.id] || []); return }
+    if (tutorial?.running) { setSelected(th); setMessages(getDemoMessages(session?.user?.id)[th.id] || []); return }
     setSelected(th)
     const { data: m } = await supabase.from('messages').select('*, profiles(full_name)')
       .eq('thread_id', th.id).order('created_at')
@@ -109,14 +124,15 @@ export default function Messages() {
           {messages.map((m) => {
             const mine = m.sender_id === session.user.id
             return (
-              <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
+              <div key={m.id} data-tutorial={m.id === 'demo-msg-1' ? 'messages-bubble' : undefined}
+                style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
                 <div style={{
                   maxWidth: '78%', padding: '.6rem .85rem', borderRadius: mine ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
                   background: mine ? 'var(--blue)' : '#fff', color: mine ? '#fff' : 'var(--ink)',
                   boxShadow: '0 1px 2px rgba(10,37,64,.08)',
                 }}>
                   <div style={{ fontSize: '.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
-                  <div data-tutorial="messages-read-receipt" style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
+                  <div data-tutorial={m.id === 'demo-msg-3' ? 'messages-read-receipt' : undefined} style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
                     {mine ? (
                       <>Sent {fmtTime(m.created_at)}{m.read_at && ` · Read ${fmtTime(m.read_at)}`}</>
                     ) : (

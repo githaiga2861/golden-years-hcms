@@ -50,11 +50,13 @@ export default function Today() {
       </p>
       {shifts.length === 0 ? (
         <div className="empty"><h3>No visits today</h3><p>Enjoy your day — check Schedule for the week ahead.</p></div>
-      ) : shifts.map((s) => {
+      ) : shifts.map((s, idx) => {
         const v = visits[s.id]
         const state = v?.clock_out_at ? 'done' : v?.clock_in_at ? 'active' : 'upcoming'
         return (
-          <Link key={s.id} to={`/visit/${s.id}`} data-tutorial="today-shift-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link key={s.id} to={`/visit/${s.id}`}
+            data-tutorial={idx === 0 ? 'today-shift-card' : idx === 1 ? 'today-shift-card-2' : undefined}
+            style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="card">
               <div className="shift-line" style={{ border: 'none', padding: 0 }}>
                 <div className="timebox"><b>{fmtT(s.starts_at)}</b><span>to {fmtT(s.ends_at)}</span></div>

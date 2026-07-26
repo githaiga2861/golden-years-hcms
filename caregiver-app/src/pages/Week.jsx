@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTutorial } from '../context/TutorialContext'
+import { DEMO_SHIFTS_UPCOMING, DEMO_SHIFTS_OPEN, DEMO_PAST_VISITS_LEDGER } from '../lib/tutorialDemoData'
 
 const fmtT = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtHrs = (h) => `${h.toFixed(2)} h`
 
 export default function Week() {
   const { caregiver } = useAuth()
+  const tutorial = useTutorial()
   const [tab, setTab] = useState('upcoming')
   const [shifts, setShifts] = useState([])
   const [pastVisits, setPastVisits] = useState([])
@@ -16,6 +19,7 @@ export default function Week() {
   const [msg, setMsg] = useState('')
 
   const loadUpcoming = () => {
+    if (tutorial?.running) { setShifts(DEMO_SHIFTS_UPCOMING); return }
     if (!caregiver) return
     const d0 = new Date(); d0.setHours(0, 0, 0, 0)
     const d1 = new Date(d0); d1.setDate(d1.getDate() + 14)
@@ -26,24 +30,27 @@ export default function Week() {
       .order('starts_at')
       .then(({ data }) => setShifts(data || []))
   }
-  useEffect(loadUpcoming, [caregiver]) // eslint-disable-line
+  useEffect(loadUpcoming, [caregiver, tutorial?.running]) // eslint-disable-line
 
   useEffect(() => {
-    if (!caregiver || tab !== 'past') return
+    if (tab !== 'past') return
+    if (tutorial?.running) { setPastVisits(DEMO_PAST_VISITS_LEDGER); return }
+    if (!caregiver) return
     supabase.from('v_visit_ledger').select('*')
       .eq('caregiver_id', caregiver.id).not('clock_out_at', 'is', null)
       .order('clock_in_at', { ascending: false }).limit(60)
       .then(({ data }) => setPastVisits(data || []))
-  }, [caregiver, tab])
+  }, [caregiver, tab, tutorial?.running])
 
   const loadOpen = () => {
+    if (tutorial?.running) { setOpenShifts(DEMO_SHIFTS_OPEN); return }
     supabase.from('shifts').select('*, clients(first_name,last_name,city)')
       .is('caregiver_id', null).eq('status', 'open')
       .gte('starts_at', new Date().toISOString())
       .order('starts_at').limit(40)
       .then(({ data }) => setOpenShifts(data || []))
   }
-  useEffect(() => { if (tab === 'open') loadOpen() }, [tab])
+  useEffect(() => { if (tab === 'open') loadOpen() }, [tab, tutorial?.running]) // eslint-disable-line
 
   const accept = async (shiftId) => {
     setBusyId(shiftId); setMsg('')
@@ -86,8 +93,8 @@ export default function Week() {
           {Object.keys(groups).length === 0 && (
             <div className="empty"><h3>No upcoming visits</h3><p>New shifts will appear here when the office schedules you.</p></div>
           )}
-          {Object.entries(groups).map(([day, list]) => (
-            <div key={day} className="card">
+          {Object.entries(groups).map(([day, list], idx) => (
+            <div key={day} className="card" data-tutorial={idx === 0 ? 'week-upcoming-list' : undefined}>
               <h3>{new Date(day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h3>
               {list.map((s) => (
                 <div key={s.id} className="shift-line" style={{ alignItems: 'center' }}>
@@ -115,8 +122,8 @@ export default function Week() {
           {openShifts.length === 0 && (
             <div className="empty"><h3>No open shifts right now</h3><p>Check back later — new ones will appear here.</p></div>
           )}
-          {openShifts.map((s) => (
-            <div key={s.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {openShifts.map((s, idx) => (
+            <div key={s.id} className="card" data-tutorial={idx === 0 ? 'week-open-list' : undefined} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <b>{s.clients.first_name} {s.clients.last_name}</b>
                 <div className="muted" style={{ fontSize: '.82rem' }}>
@@ -150,8 +157,8 @@ export default function Week() {
           {pastVisits.length === 0 && (
             <div className="empty"><h3>No past visits yet</h3><p>Completed visits will appear here with your hours.</p></div>
           )}
-          {pastVisits.map((v) => (
-            <div key={v.visit_id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {pastVisits.map((v, idx) => (
+            <div key={v.visit_id} className="card" data-tutorial={idx === 0 ? 'week-past-list' : undefined} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <b>{v.client_name}</b>
                 <div className="muted" style={{ fontSize: '.82rem' }}>

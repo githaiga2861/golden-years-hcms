@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useTutorial } from '../context/TutorialContext'
 
+const CARD_HEIGHT_ESTIMATE = 230
+
 export default function TutorialOverlay() {
   const tutorial = useTutorial()
   const [rect, setRect] = useState(null)
+  const [cardOnTop, setCardOnTop] = useState(false)
 
   const { running, currentStep, stepIndex, totalSteps, next, back, stop } = tutorial || {}
 
@@ -13,17 +16,18 @@ export default function TutorialOverlay() {
 
     const locate = () => {
       if (cancelled) return
-      if (!currentStep?.target) { setRect(null); return }
+      if (!currentStep?.target) { setRect(null); setCardOnTop(false); return }
       const el = document.querySelector(`[data-tutorial="${currentStep.target}"]`)
-      if (!el) { setRect(null); return }
+      if (!el) { setRect(null); setCardOnTop(false); return }
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       el.classList.add('tutorial-shake')
       const r = el.getBoundingClientRect()
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
-      return () => el.classList.remove('tutorial-shake')
+      // If the highlighted element sits low enough that the bottom caption
+      // card would cover it, show the card at the top instead for this step.
+      setCardOnTop(r.top + r.height > window.innerHeight - CARD_HEIGHT_ESTIMATE)
     }
 
-    // Give the page a beat to render/navigate before measuring
     const t = setTimeout(locate, 350)
     const onResize = () => locate()
     window.addEventListener('resize', onResize)
@@ -43,10 +47,8 @@ export default function TutorialOverlay() {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9990 }}>
-      {/* Dimmed backdrop, blocks interaction with the real app during the tour */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,37,64,.6)' }} />
 
-      {/* Spotlight ring around the highlighted element */}
       {rect && (
         <div style={{
           position: 'absolute',
@@ -57,9 +59,10 @@ export default function TutorialOverlay() {
         }} />
       )}
 
-      {/* Caption card */}
       <div style={{
-        position: 'fixed', left: '50%', bottom: 18, transform: 'translateX(-50%)',
+        position: 'fixed', left: '50%',
+        ...(cardOnTop ? { top: 18 } : { bottom: 18 }),
+        transform: 'translateX(-50%)',
         width: 'calc(100% - 32px)', maxWidth: 360, background: '#fff', borderRadius: 16,
         padding: '1rem 1.1rem', boxShadow: '0 12px 32px rgba(10,37,64,.35)',
       }}>
