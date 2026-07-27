@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import logo from '../assets/logo.png'
 
 /**
@@ -8,6 +9,17 @@ import logo from '../assets/logo.png'
  * Caregivers never sign in here.
  */
 export default function Landing() {
+  const [apkHref, setApkHref] = useState(`${import.meta.env.BASE_URL}downloads/golden-years-care.apk?t=${Date.now()}`)
+
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}downloads/version.json?t=${Date.now()}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.apkFile) setApkHref(`${import.meta.env.BASE_URL}downloads/${data.apkFile}`)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="landing">
       <header className="land-top">
@@ -73,7 +85,7 @@ export default function Landing() {
           <div className="app-card">
             <h2 className="thread">Golden Years Care App</h2>
             <p>For caregivers — clock in and out, see your schedule and each client's care plan, complete ADL checklists, and write visit notes. Install it on your phone and sign in only inside the app, with instructions from the office.</p>
-            <a className="btn btn-gold mt" href={`${import.meta.env.BASE_URL}downloads/golden-years-care.apk?t=${Date.now()}`} download>
+            <a className="btn btn-gold mt" href={apkHref} download>
               Download the Android App
             </a>
             <p className="muted" style={{ fontSize: '.8rem', marginTop: '.7rem' }}>
