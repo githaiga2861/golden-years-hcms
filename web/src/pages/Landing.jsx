@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
 import logo from '../assets/logo.png'
 
 /**
@@ -9,16 +8,10 @@ import logo from '../assets/logo.png'
  * Caregivers never sign in here.
  */
 export default function Landing() {
-  const [apkHref, setApkHref] = useState(`${import.meta.env.BASE_URL}downloads/golden-years-care.apk?t=${Date.now()}`)
-
-  useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}downloads/version.json?t=${Date.now()}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.apkFile) setApkHref(`${import.meta.env.BASE_URL}downloads/${data.apkFile}`)
-      })
-      .catch(() => {})
-  }, [])
+  // __APK_FILE__ is baked in at build time by vite.config.js, reading
+  // version.json directly off disk — never a network request, so it
+  // can never be served stale by any CDN cache.
+  const apkHref = `${import.meta.env.BASE_URL}downloads/${__APK_FILE__}`
 
   return (
     <div className="landing">
