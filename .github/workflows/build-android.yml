@@ -68,9 +68,10 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           rm -rf dist/downloads
           cp -r public/downloads dist/downloads
-          npx gh-pages -d dist
+          npx gh-pages -d dist -r "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
       - name: Commit updated APK
         run: |
           git config user.name "github-actions[bot]"
