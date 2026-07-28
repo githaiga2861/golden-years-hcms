@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useRefresh } from '../context/RefreshContext'
 import logo from '../assets/logo.png'
 import { supabase } from '../lib/supabase'
+import InstallButton from './InstallButton'
 
 const NAV = [
   ['/app', 'Dashboard', '⌂', true],
@@ -65,6 +66,7 @@ export default function Shell() {
         <div className="foot">
           <div style={{ color: '#fff', fontWeight: 600 }}>{profile?.full_name}</div>
           <div style={{ opacity: .75, textTransform: 'capitalize' }}>{profile?.role}</div>
+          <div style={{ marginTop: '.6rem' }}><InstallButton /></div>
           <button className="btn btn-quiet" style={{ padding: '.3rem .5rem', marginTop: '.4rem', color: '#b9cde2' }}
             onClick={async () => { await signOut(); nav('/') }}>Sign out</button>
         </div>
