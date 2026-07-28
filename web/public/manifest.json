@@ -2,7 +2,7 @@
   "name": "Golden Years HCMS",
   "short_name": "GY HCMS",
   "description": "Golden Years Home Care Management System — the office system.",
-  "start_url": "/",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f5f8fb",

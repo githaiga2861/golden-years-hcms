@@ -11,7 +11,7 @@ export default function Landing() {
   // __APK_FILE__ is baked in at build time by vite.config.js, reading
   // version.json directly off disk — never a network request, so it
   // can never be served stale by any CDN cache.
-  const apkHref = `${import.meta.env.BASE_URL}downloads/${__APK_FILE__}`
+  const apkHref = `https://care.goldenyearshomecarewa.com/downloads/${__APK_FILE__}`
 
   return (
     <div className="landing">
@@ -83,7 +83,7 @@ export default function Landing() {
             </a>
             <p className="muted" style={{ fontSize: '.8rem', marginTop: '.7rem' }}>
               On your phone: tap to download the .apk, then open it to install (you may need to allow "install from unknown sources" the first time). iPhone version coming later —
-              in the meantime, <a href={`${import.meta.env.BASE_URL}care-app/`}>use the web version here</a>.
+              in the meantime, <a href="https://care.goldenyearshomecarewa.com/">use the web version here</a>.
             </p>
           </div>
         </div>

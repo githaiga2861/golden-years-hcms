@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase'
 
 const UpdateContext = createContext(null)
 
-const VERSION_URL = 'https://hcms.goldenyearshomecarewa.com/downloads/version.json'
-const APK_DOWNLOADS_BASE = 'https://hcms.goldenyearshomecarewa.com/downloads/'
+const VERSION_URL = 'https://care.goldenyearshomecarewa.com/downloads/version.json'
+const APK_DOWNLOADS_BASE = 'https://care.goldenyearshomecarewa.com/downloads/'
 const POLL_MS = 3 * 60 * 1000 // 3 minutes
 
 // This app's own build version, baked in at build time. Unlike version.json
