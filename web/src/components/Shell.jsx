@@ -67,7 +67,7 @@ export default function Shell() {
           <div style={{ color: '#fff', fontWeight: 600 }}>{profile?.full_name}</div>
           <div style={{ opacity: .75, textTransform: 'capitalize' }}>{profile?.role}</div>
           <button className="btn btn-quiet" style={{ padding: '.3rem .5rem', marginTop: '.4rem', color: '#b9cde2' }}
-            onClick={async () => { await signOut(); nav('/') }}>Sign out</button>
+            onClick={async () => { await signOut(); nav('/login') }}>Sign out</button>
         </div>
       </aside>
       <InstallButton />
