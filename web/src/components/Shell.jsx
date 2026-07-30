@@ -17,6 +17,7 @@ const NAV = [
   ['/app/reports', 'Reports', '▤'],
   ['/app/messages', 'Messages', '✉'],
   ['/app/team', 'Team & Roles', '⚑'],
+  ['/app/emails', 'Emails', '✉'],
   ['/app/settings', 'Settings', '⚙'],
 ]
 

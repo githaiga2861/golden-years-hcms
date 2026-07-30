@@ -14,6 +14,7 @@ import Alerts from './pages/Alerts'
 import Reports from './pages/Reports'
 import Messages from './pages/Messages'
 import Team from './pages/Team'
+import Emails from './pages/Emails'
 import Settings from './pages/Settings'
 
 function Protected({ children }) {
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="messages" element={<Messages />} />
             <Route path="team" element={<Team />} />
+            <Route path="emails" element={<Emails />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

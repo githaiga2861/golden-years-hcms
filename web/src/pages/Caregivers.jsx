@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fullName, WEEKDAYS } from '../lib/format'
 import { Modal, Field, Empty, Pill, ProfileHeader, TechSupportPreview } from '../components/Ui'
@@ -8,6 +9,8 @@ import { createCaregiverAccount } from '../lib/createCaregiverAccount'
 import { updateCaregiverAccount } from '../lib/updateCaregiverAccount'
 
 export default function Caregivers() {
+  const location = useLocation()
+  const [highlightAdd, setHighlightAdd] = useState(!!location.state?.highlightAdd)
   const { profile } = useAuth()
   const isTechSupport = profile?.role === 'tech_support'
   const [rows, setRows] = useState([])
@@ -30,7 +33,10 @@ export default function Caregivers() {
     <>
       <div className="page-head">
         <div><h1 className="thread">Caregivers</h1><div className="sub">Your team, their availability, rates, and credentials.</div></div>
-        {!isTechSupport && <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Register caregiver</button>}
+        {!isTechSupport && (
+          <button className={`btn btn-primary${highlightAdd ? ' pulse-attention' : ''}`}
+            onClick={() => { setAdding(true); setHighlightAdd(false) }}>+ Register caregiver</button>
+        )}
       </div>
       {isTechSupport && (
         <p className="notice notice-warn mb">Technical Support mode: sensitive caregiver details (contact info, pay, and credentials) are hidden and never sent to this account.</p>

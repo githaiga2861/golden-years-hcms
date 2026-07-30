@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import logo from '../assets/logo.png'
 
 /**
@@ -12,6 +13,15 @@ export default function Landing() {
   // version.json directly off disk — never a network request, so it
   // can never be served stale by any CDN cache.
   const apkHref = `https://care.goldenyearshomecarewa.com/downloads/${__APK_FILE__}`
+  const [params] = useSearchParams()
+  const highlightDownload = params.get('highlight') === 'download'
+  const downloadRef = useRef(null)
+
+  useEffect(() => {
+    if (highlightDownload && downloadRef.current) {
+      downloadRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [highlightDownload])
 
   return (
     <div className="landing">
@@ -78,7 +88,7 @@ export default function Landing() {
           <div className="app-card">
             <h2 className="thread">Golden Years Care App</h2>
             <p>For caregivers — clock in and out, see your schedule and each client's care plan, complete ADL checklists, and write visit notes. Install it on your phone and sign in only inside the app, with instructions from the office.</p>
-            <a className="btn btn-gold mt" href={apkHref} download>
+            <a ref={downloadRef} className={`btn btn-gold mt${highlightDownload ? ' pulse-attention' : ''}`} href={apkHref} download>
               Download the Android App
             </a>
             <p className="muted" style={{ fontSize: '.8rem', marginTop: '.7rem' }}>

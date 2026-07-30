@@ -172,15 +172,14 @@ function ChangePasswordModal({ email, onClose }) {
     if (!next || next.length < 8) return setErr('New password must be at least 8 characters.')
     if (next !== confirmPwd) return setErr('New passwords do not match.')
     setBusy(true)
-    // Verify the current password by attempting to sign in with it.
-    const { error: verifyErr } = await supabase.auth.signInWithPassword({ email, password: current })
-    if (verifyErr) {
-      setBusy(false)
-      return setErr('Your current password is incorrect.')
-    }
-    const { error: updateErr } = await supabase.auth.updateUser({ password: next })
+    // Routed through a server-side function (not a direct client call)
+    // so the office's encrypted login-secret copy stays in sync too.
+    const { data, error } = await supabase.functions.invoke('caregiver-change-own-password', {
+      body: { current_password: current, new_password: next },
+    })
     setBusy(false)
-    if (updateErr) return setErr(updateErr.message)
+    const problem = error ? (data?.error || error.message) : data?.error
+    if (problem) return setErr(problem)
     setDone(true)
   }
 

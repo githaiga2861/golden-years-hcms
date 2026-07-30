@@ -73,6 +73,11 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
+    // Keep the encrypted login-secret copy in sync, for the Emails page.
+    await adminClient.rpc('upsert_caregiver_login_secret', {
+      p_caregiver_id: caregiver_id, p_email: email, p_password: password,
+    })
+
     return new Response(JSON.stringify({ ok: true, user_id: created.user.id }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {

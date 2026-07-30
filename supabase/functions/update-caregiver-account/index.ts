@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
-    const { data: cg, error: cgErr } = await adminClient.from('caregivers').select('profile_id').eq('id', caregiver_id).single()
+    const { data: cg, error: cgErr } = await adminClient.from('caregivers').select('profile_id, email').eq('id', caregiver_id).single()
     if (cgErr || !cg?.profile_id) {
       return new Response(JSON.stringify({ error: 'This caregiver has no linked login yet.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -78,6 +78,13 @@ Deno.serve(async (req) => {
     // Keep profiles.email and caregivers.email in sync for display purposes.
     if (new_email) {
       await adminClient.from('profiles').update({ email: new_email }).eq('id', cg.profile_id)
+    }
+
+    // Keep the encrypted login-secret copy in sync, for the Emails page.
+    if (new_password) {
+      await adminClient.rpc('upsert_caregiver_login_secret', {
+        p_caregiver_id: caregiver_id, p_email: new_email || cg.email, p_password: new_password,
+      })
     }
 
     return new Response(JSON.stringify({ ok: true }),
