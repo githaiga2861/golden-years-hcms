@@ -56,6 +56,10 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
+      - name: Diagnostic - check actual built APK size
+        run: |
+          ls -la caregiver-app/android/app/build/outputs/apk/release/
+          du -h caregiver-app/android/app/build/outputs/apk/release/app-release.apk
       - name: Publish APK to a GitHub Release (not git — the APK is too large for normal git storage)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
