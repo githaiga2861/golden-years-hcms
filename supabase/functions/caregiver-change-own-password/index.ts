@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     const { data: cg } = await adminClient.from('caregivers').select('id').eq('profile_id', caller.id).maybeSingle()
     if (cg?.id) {
       await adminClient.rpc('upsert_caregiver_login_secret', {
-        p_caregiver_id: cg.id, p_email: caller.email, p_password: new_password,
+        p_caregiver_id: cg.id, p_email: caller.email, p_password: new_password, p_is_admin_set: false,
       })
     }
 

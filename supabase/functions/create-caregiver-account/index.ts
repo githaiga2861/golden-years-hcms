@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
 
     // Keep the encrypted login-secret copy in sync, for the Emails page.
     await adminClient.rpc('upsert_caregiver_login_secret', {
-      p_caregiver_id: caregiver_id, p_email: email, p_password: password,
+      p_caregiver_id: caregiver_id, p_email: email, p_password: password, p_is_admin_set: true,
     })
 
     return new Response(JSON.stringify({ ok: true, user_id: created.user.id }),

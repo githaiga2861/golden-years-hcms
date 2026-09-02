@@ -6,7 +6,11 @@ import { Modal } from '../components/Ui'
 
 const DOWNLOAD_LINK = 'https://hcms.goldenyearshomecarewa.com/?highlight=download'
 
-function buildEmailForExisting(name, password, loginEmail) {
+function buildEmailForExisting(name, password, loginEmail, changedByCaregiver) {
+  const credentialsBlock = changedByCaregiver
+    ? `Your login email is: ${loginEmail}\nYou've already set your own password, so we don't have it on file — please use whatever password you chose. If you've forgotten it, let the office know and we can reset it.`
+    : `Your login details:\nEmail: ${loginEmail}\nPassword: ${password || '(ask the office)'}\n\nOnce you're signed in, we strongly recommend changing your password — you can do this anytime from the Profile page inside the app.`
+
   return {
     subject: 'Download the Golden Years Care App',
     body: `Hi ${name},
@@ -15,11 +19,7 @@ Please download the Golden Years Care App using the link below. The download but
 
 ${DOWNLOAD_LINK}
 
-Your login details:
-Email: ${loginEmail}
-Password: ${password || '(ask the office)'}
-
-Once you're signed in, we strongly recommend changing your password — you can do this anytime from the Profile page inside the app.
+${credentialsBlock}
 
 Thank you,
 Golden Years Home Health`,
@@ -106,8 +106,9 @@ function ShareDownloadLinkModal({ onClose }) {
     })
     const password = !error && data?.password ? data.password : ''
     const loginEmail = !error && data?.email ? data.email : (cg.email || '')
-    const { subject, body } = buildEmailForExisting(fullName(cg), password, loginEmail)
-    updateRow(rowId, { password, email: loginEmail, subject, body, loadingSecret: false })
+    const changedByCaregiver = !error && data?.changedByCaregiver
+    const { subject, body } = buildEmailForExisting(fullName(cg), password, loginEmail, changedByCaregiver)
+    updateRow(rowId, { password, email: loginEmail, subject, body, loadingSecret: false, changedByCaregiver })
   }
 
   const wantToAddFirst = () => {

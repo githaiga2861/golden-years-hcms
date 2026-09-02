@@ -46,14 +46,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
-    const { data: secret } = await adminClient.from('caregiver_login_secrets').select('email').eq('caregiver_id', caregiver_id).maybeSingle()
+    const { data: secret } = await adminClient.from('caregiver_login_secrets').select('email, is_original_password').eq('caregiver_id', caregiver_id).maybeSingle()
     if (!secret) {
       return new Response(JSON.stringify({ error: 'No login on file for this caregiver yet.' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
+    if (!secret.is_original_password) {
+      return new Response(JSON.stringify({ ok: true, email: secret.email, password: null, changedByCaregiver: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
     const { data: password } = await adminClient.rpc('decrypt_caregiver_login_secret', { p_caregiver_id: caregiver_id })
 
-    return new Response(JSON.stringify({ ok: true, email: secret.email, password }),
+    return new Response(JSON.stringify({ ok: true, email: secret.email, password, changedByCaregiver: false }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }),

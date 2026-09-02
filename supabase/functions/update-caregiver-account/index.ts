@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     // Keep the encrypted login-secret copy in sync, for the Emails page.
     if (new_password) {
       await adminClient.rpc('upsert_caregiver_login_secret', {
-        p_caregiver_id: caregiver_id, p_email: new_email || cg.email, p_password: new_password,
+        p_caregiver_id: caregiver_id, p_email: new_email || cg.email, p_password: new_password, p_is_admin_set: true,
       })
     }
 
