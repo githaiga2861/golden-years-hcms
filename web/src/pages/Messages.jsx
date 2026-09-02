@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fullName } from '../lib/format'
-import { Empty, Modal, Field } from '../components/Ui'
+import { Empty, Modal, Field, HowThisWorks } from '../components/Ui'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -22,11 +22,11 @@ export default function Messages() {
       <div className="page-head">
         <div><h1 className="thread">Messages</h1><div className="sub">Chat with caregivers, message groups, and save reusable templates.</div></div>
       </div>
-      <p className="notice notice-info" style={{ marginBottom: '1rem' }}>
+      <HowThisWorks>
         A caregiver only gets an instant phone notification if they're signed in and online at the moment you send a message.
         If they're offline or not signed in, the message will still be waiting for them the next time they open the app —
         but they won't be alerted, so follow up another way (call or text) if something is time-sensitive.
-      </p>
+      </HowThisWorks>
       <div className="toolbar mb">
         {PAGES.map((p) => (
           <button key={p} className={`btn ${page === p ? 'btn-primary' : 'btn-outline'}`} onClick={() => setPage(p)}>

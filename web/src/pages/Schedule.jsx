@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtTime, fullName, startOfWeek, addDays, toISODate, WEEKDAYS } from '../lib/format'
-import { Modal, Field, Pill } from '../components/Ui'
+import { Modal, Field, Pill, HowThisWorks } from '../components/Ui'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -44,6 +44,11 @@ export default function Schedule() {
         <div><h1 className="thread">Schedule</h1><div className="sub">Assign caregivers, manage shifts, spot gaps early.</div></div>
         <button className="btn btn-primary" onClick={() => setEditing({})}>+ New shift</button>
       </div>
+      <HowThisWorks>
+        Shifts left without a caregiver assigned show up as "open" in the Care App's Schedule tab — any caregiver in
+        that client's assigned pool can claim them, first come, first served. Trying to schedule outside a client's
+        authorized hours will be blocked automatically, not just warned about.
+      </HowThisWorks>
 
       <div className="cal-toolbar mb">
         <button className="btn btn-outline" onClick={() => setWeekStart(addDays(weekStart, -7))}>← Prev</button>

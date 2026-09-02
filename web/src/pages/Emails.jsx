@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fullName } from '../lib/format'
-import { Modal } from '../components/Ui'
+import { Modal, HowThisWorks } from '../components/Ui'
 
 const DOWNLOAD_LINK = 'https://hcms.goldenyearshomecarewa.com/?highlight=download'
 
@@ -63,6 +63,11 @@ export default function Emails() {
       <div className="page-head">
         <div><h1 className="thread">Emails</h1><div className="sub">Tools for emailing caregivers and other contacts.</div></div>
       </div>
+      <HowThisWorks>
+        "Send" opens a draft in your own email app (Gmail, Outlook, whatever you use) — it doesn't send anything
+        automatically. You review it, make any edits, and hit send yourself, so you always know exactly what went
+        out and when.
+      </HowThisWorks>
 
       <div className="card card-pad" style={{ maxWidth: 420 }}>
         <h3 style={{ marginTop: 0 }}>Share download link</h3>

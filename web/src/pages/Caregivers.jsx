@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fullName, WEEKDAYS } from '../lib/format'
-import { Modal, Field, Empty, Pill, ProfileHeader, TechSupportPreview } from '../components/Ui'
+import { Modal, Field, Empty, Pill, ProfileHeader, TechSupportPreview, HowThisWorks } from '../components/Ui'
 import { useAuth } from '../context/AuthContext'
 import EditableSelect from '../components/EditableSelect'
 import { createCaregiverAccount } from '../lib/createCaregiverAccount'
@@ -38,6 +38,11 @@ export default function Caregivers() {
             onClick={() => { setAdding(true); setHighlightAdd(false) }}>+ Register caregiver</button>
         )}
       </div>
+      <HowThisWorks>
+        Once a caregiver changes their own password inside the Care App, the office genuinely can no longer see or
+        share it — you'll get an alert when this happens. Until then, their original admin-set password stays
+        visible so you can resend it if needed.
+      </HowThisWorks>
       {isTechSupport && (
         <p className="notice notice-warn mb">Technical Support mode: sensitive caregiver details (contact info, pay, and credentials) are hidden and never sent to this account.</p>
       )}

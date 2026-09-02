@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fullName, fmtDate } from '../lib/format'
 import { geocodeAddress } from '../lib/geocode'
-import { Modal, Field, Empty, Pill, ProfileHeader, TechSupportPreview } from '../components/Ui'
+import { Modal, Field, Empty, Pill, ProfileHeader, TechSupportPreview, HowThisWorks } from '../components/Ui'
 import { useAuth } from '../context/AuthContext'
 import EditableSelect from '../components/EditableSelect'
 import AddressAutocomplete from '../components/AddressAutocomplete'
@@ -33,6 +33,11 @@ export default function Clients() {
         <div><h1 className="thread">Clients</h1><div className="sub">Private-pay clients, their care plans, and physician documents.</div></div>
         {!isTechSupport && <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Register client</button>}
       </div>
+      <HowThisWorks>
+        Authorized service hours are a hard limit, not just a suggestion — the system will refuse to schedule a
+        caregiver for a client outside the hours you set here, on the actual Schedule page. Care plan files you
+        upload here are for office reference only and are never shown to caregivers.
+      </HowThisWorks>
       {isTechSupport && (
         <p className="notice notice-warn mb">Technical Support mode: sensitive client details (address, clinical, and billing info) are hidden and never sent to this account.</p>
       )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDate, fmtTime, fmtHours, fmtMoney } from '../lib/format'
-import { Empty, Pill, Modal } from '../components/Ui'
+import { Empty, Pill, Modal, HowThisWorks } from '../components/Ui'
 
 /**
  * Verified Hours — the heart of the billing pipeline.
@@ -52,6 +52,11 @@ export default function Hours() {
           <div className="sub">Review clocked visits, verify them, and feed invoicing & payroll.</div></div>
         <button className="btn btn-outline" onClick={exportPayrollCsv}>Export payroll CSV</button>
       </div>
+      <HowThisWorks>
+        "Verified" means the caregiver's clock-in and clock-out were both confirmed by GPS at the client's home —
+        it's not a manual approval step. Hours only need your review here if something looks off (a location
+        mismatch, a missing clock-out, etc.) — normal verified visits don't need any action from you.
+      </HowThisWorks>
 
       <div className="toolbar mb">
         {['pending', 'verified', 'all'].map((fk) => (

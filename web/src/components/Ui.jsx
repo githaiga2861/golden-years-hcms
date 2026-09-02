@@ -1,4 +1,34 @@
 // Small shared UI primitives kept in one file for easy maintenance.
+import { useState } from 'react'
+
+/**
+ * A faint, collapsed-by-default "How this works" hint. Use on any page
+ * where the system's actual behavior might not be obvious — expands
+ * only when someone wants the explanation, so it never clutters the
+ * page for people who already know how things work.
+ */
+export function HowThisWorks({ children }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ marginBottom: '1rem' }}>
+      <button onClick={() => setOpen((o) => !o)} style={{
+        background: 'none', border: 'none', color: 'var(--muted)', fontSize: '.82rem',
+        cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '.35rem',
+      }}>
+        <span style={{ display: 'inline-block', transition: 'transform .15s', transform: open ? 'rotate(90deg)' : 'none' }}>▸</span>
+        How this works
+      </button>
+      {open && (
+        <div style={{
+          marginTop: '.5rem', padding: '.7rem .9rem', background: 'var(--paper)',
+          border: '1px solid var(--line)', borderRadius: 8, fontSize: '.84rem',
+          color: 'var(--muted)', lineHeight: 1.55, maxWidth: 640,
+        }}>{children}</div>
+      )}
+    </div>
+  )
+}
+
 
 export function Modal({ title, header, onClose, children, footer, wide, xwide }) {
   return (

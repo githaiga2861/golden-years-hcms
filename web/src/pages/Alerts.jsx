@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDateTime } from '../lib/format'
-import { Empty, Pill } from '../components/Ui'
+import { Empty, Pill, HowThisWorks } from '../components/Ui'
 
 export default function Alerts() {
   const [rows, setRows] = useState([])
@@ -33,6 +33,11 @@ export default function Alerts() {
           Show resolved
         </label>
       </div>
+      <HowThisWorks>
+        Most alerts here (location mismatch, missed clock-ins, unfilled shifts) are generated automatically from
+        real GPS and clock data — the system watches for these on its own. Some, like credential expiry, are simple
+        date checks. All of them need a person to review and resolve — nothing here fixes itself.
+      </HowThisWorks>
       <div className="card">
         {rows.length === 0 ? <Empty icon="✓" title="All clear" hint="No alerts to review." /> : rows.map((a) => (
           <div className="alert-row" key={a.id}>
