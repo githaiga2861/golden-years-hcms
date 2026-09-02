@@ -9,10 +9,10 @@ import logo from '../assets/logo.png'
  * Caregivers never sign in here.
  */
 export default function Landing() {
-  // __APK_FILE__ is baked in at build time by vite.config.js, reading
+  // __APK_URL__ is baked in at build time by vite.config.js, reading
   // version.json directly off disk — never a network request, so it
   // can never be served stale by any CDN cache.
-  const apkHref = `https://care.goldenyearshomecarewa.com/downloads/${__APK_FILE__}`
+  const apkHref = __APK_URL__ || `https://care.goldenyearshomecarewa.com/downloads/golden-years-care.apk`
   const [params] = useSearchParams()
   const highlightDownload = params.get('highlight') === 'download'
   const downloadRef = useRef(null)

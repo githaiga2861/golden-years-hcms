@@ -56,28 +56,34 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
-      - name: Publish APK under a unique filename every build (defeats any CDN caching)
+      - name: Publish APK to a GitHub Release (not git — the APK is too large for normal git storage)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "apk-${{ github.run_number }}" \
+            "caregiver-app/android/app/build/outputs/apk/release/app-release.apk#golden-years-care.apk" \
+            --title "Care App build ${{ github.run_number }}" \
+            --notes "Automated build from commit ${{ github.sha }}"
+      - name: Write version.json pointing at the release asset
         run: |
           mkdir -p caregiver-app/public/downloads
-          rm -f caregiver-app/public/downloads/golden-years-care-*.apk
-          cp caregiver-app/android/app/build/outputs/apk/release/app-release.apk "caregiver-app/public/downloads/golden-years-care-${{ github.sha }}.apk"
-          cp caregiver-app/android/app/build/outputs/apk/release/app-release.apk caregiver-app/public/downloads/golden-years-care.apk
-          echo "{\"version\": \"${{ github.sha }}\", \"builtAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"apkFile\": \"golden-years-care-${{ github.sha }}.apk\"}" > caregiver-app/public/downloads/version.json
-      - name: Deploy Care App PWA (with the new APK inside) to GitHub Pages
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/apk-${{ github.run_number }}/golden-years-care.apk"
+          echo "{\"version\": \"${{ github.sha }}\", \"builtAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"apkUrl\": \"$APK_URL\"}" > caregiver-app/public/downloads/version.json
+          cat caregiver-app/public/downloads/version.json
+      - name: Deploy Care App PWA to GitHub Pages
         working-directory: caregiver-app
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           rm -rf dist/downloads
           cp -r public/downloads dist/downloads
           npx gh-pages -d dist -r "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-      - name: Commit updated APK
+      - name: Commit updated version.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add caregiver-app/public/downloads/
-          git diff --cached --quiet || git commit -m "Auto-build: update Android APK [skip ci]"
+          git add caregiver-app/public/downloads/version.json
+          git diff --cached --quiet || git commit -m "Auto-build: update version.json [skip ci]"
           git push
       - name: Notify caregivers of the new app version
         run: |
@@ -85,8 +91,3 @@ jobs:
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Content-Type: application/json" -d '{}'
-      - name: Upload APK as a build artifact too
-        uses: actions/upload-artifact@v4
-        with:
-          name: golden-years-care-apk
-          path: caregiver-app/android/app/build/outputs/apk/release/app-release.apk
