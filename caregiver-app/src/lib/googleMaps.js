@@ -5,9 +5,20 @@
  */
 let loadPromise = null
 
+function waitForReady(resolve, reject, attemptsLeft = 100) {
+  if (window.google?.maps?.DistanceMatrixService) {
+    resolve(window.google)
+    return
+  }
+  if (attemptsLeft <= 0) {
+    reject(new Error('Google Maps loaded, but never became ready.'))
+    return
+  }
+  setTimeout(() => waitForReady(resolve, reject, attemptsLeft - 1), 50)
+}
+
 export function loadGoogleMaps() {
   if (loadPromise) return loadPromise
-
   const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
   if (!key) {
     return Promise.reject(new Error('Google Maps API key is not configured (see .env).'))
@@ -15,12 +26,11 @@ export function loadGoogleMaps() {
   if (window.google?.maps?.DistanceMatrixService) {
     return Promise.resolve(window.google)
   }
-
   loadPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script')
     script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async`
     script.async = true
-    script.onload = () => resolve(window.google)
+    script.onload = () => waitForReady(resolve, reject)
     script.onerror = () => reject(new Error('Failed to load Google Maps.'))
     document.head.appendChild(script)
   })
