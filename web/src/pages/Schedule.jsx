@@ -216,7 +216,7 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
       <>
         {!isNew && <button className="btn btn-danger" onClick={remove} style={{ marginRight: 'auto' }}>Delete</button>}
         <button className="btn btn-quiet" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save shift'}</button>
+        <button className="btn btn-primary" onClick={save} disabled={busy || !!hoursWarning || !!dayAuthWarning}>{busy ? 'Saving…' : 'Save shift'}</button>
       </>
     }>
       {err && <p className="notice notice-bad">{err}</p>}
