@@ -808,10 +808,17 @@ function AccountLink({ caregiver, onSaved }) {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
     setBusy(false)
-    if (error || data?.error) {
-      const detail = data?.error || error?.context?.body?.error || error?.message
+    if (error) {
+      let detail = error.message
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const body = await error.context.json()
+          if (body?.error) detail = body.error
+        }
+      } catch {}
       return setMsg({ kind: 'bad', text: detail })
     }
+    if (data?.error) return setMsg({ kind: 'bad', text: data.error })
     const { subject, body } = buildEmailForExisting(fullName(caregiver), data.password, data.email, data.changedByCaregiver)
     window.location.href = `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
