@@ -11,8 +11,15 @@ export async function createCaregiverAccount({ email, password, caregiverId, ful
     body: { email, password, caregiver_id: caregiverId, full_name: fullName },
   })
   if (error) {
-    // Supabase wraps non-2xx responses in a generic error; try to surface the real message.
-    const detail = data?.error || error.context?.body?.error || error.message
+    // Supabase wraps non-2xx responses in a generic error — the real message is
+    // in the response body, which requires an async .json() read to get at.
+    let detail = error.message
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        const body = await error.context.json()
+        if (body?.error) detail = body.error
+      }
+    } catch {}
     return { ok: false, error: detail }
   }
   if (data?.error) return { ok: false, error: data.error }

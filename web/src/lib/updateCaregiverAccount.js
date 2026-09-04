@@ -11,7 +11,13 @@ export async function updateCaregiverAccount({ caregiverId, newEmail, newPasswor
     body: { caregiver_id: caregiverId, new_email: newEmail || undefined, new_password: newPassword || undefined },
   })
   if (error) {
-    const detail = data?.error || error.context?.body?.error || error.message
+    let detail = error.message
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        const body = await error.context.json()
+        if (body?.error) detail = body.error
+      }
+    } catch {}
     return { ok: false, error: detail }
   }
   if (data?.error) return { ok: false, error: data.error }
