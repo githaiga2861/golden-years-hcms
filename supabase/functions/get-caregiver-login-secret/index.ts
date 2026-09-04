@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     )
     const { data: secret } = await adminClient.from('caregiver_login_secrets').select('email, is_original_password').eq('caregiver_id', caregiver_id).maybeSingle()
     if (!secret) {
-      return new Response(JSON.stringify({ error: 'No login on file for this caregiver yet.' }),
+      return new Response(JSON.stringify({ error: "This caregiver's login was linked before password-sharing was set up — set a new password above once using 'Save changes' to enable sharing going forward." }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
     if (!secret.is_original_password) {
