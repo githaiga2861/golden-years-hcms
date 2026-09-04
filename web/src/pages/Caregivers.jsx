@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import EditableSelect from '../components/EditableSelect'
 import { createCaregiverAccount } from '../lib/createCaregiverAccount'
 import { updateCaregiverAccount } from '../lib/updateCaregiverAccount'
+import { buildEmailForExisting, buildEmailForNew } from '../lib/emailTemplates'
 
 export default function Caregivers() {
   const location = useLocation()
@@ -69,6 +70,17 @@ export default function Caregivers() {
           </table>
         )}
       </div>
+      <HowThisWorks>
+        <b>Where to find things on this page:</b>
+        <ul style={{ margin: '.5rem 0 0', paddingLeft: '1.2rem' }}>
+          <li>To email a caregiver their download link and login details, open their profile → <b>App Account</b> tab → <b>Share login details</b>.</li>
+          <li>"Linked" in the App account column means they have a working Care App login; "Not linked" means one hasn't been created yet.</li>
+          <li>Time off, skills, restrictions, and availability you add in the registration form only save once you click each item's own <b>+ Add</b> button — filling the fields alone isn't enough.</li>
+          <li>Credentials with expiry dates show up automatically on the caregiver's own Alerts when they're close to expiring.</li>
+          <li>Deleting a caregiver only works if they have no visits or history yet — otherwise, mark them Inactive instead.</li>
+          <li>Once a caregiver changes their own password, the office can no longer see it — you'll get an Alert when that happens.</li>
+        </ul>
+      </HowThisWorks>
       {adding && <CaregiverModal onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load() }} />}
       {selected && (isTechSupport
         ? <TechSupportPreview title={fullName(selected)} row={selected} type="caregiver" onClose={() => setSelected(null)} />
@@ -423,6 +435,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
           </div>
           <Field label="Reason (optional)"><input value={newTimeOff.reason} onChange={(e) => setNewTimeOff({ ...newTimeOff, reason: e.target.value })} /></Field>
           <button type="button" className="btn btn-outline mb" onClick={addTimeOff}>+ Add time off</button>
+          <p className="muted" style={{ fontSize: '.78rem', marginTop: '-.4rem', marginBottom: '.8rem' }}>Tap this button after filling the dates above — nothing is saved until it's added to the list.</p>
         </>
       )}
 
@@ -722,6 +735,7 @@ function AccountLink({ caregiver, onSaved }) {
   const [editPassword, setEditPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
+  const [showSharePrompt, setShowSharePrompt] = useState(false)
 
   useEffect(() => {
     if (!caregiver.profile_id) { setLoading(false); return }
@@ -739,9 +753,21 @@ function AccountLink({ caregiver, onSaved }) {
     })
     setBusy(false)
     if (!result.ok) return setMsg({ kind: 'bad', text: result.error })
-    setMsg({ kind: 'ok', text: 'Login created. The caregiver can now sign in to the Care App.' })
     setLinkedEmail(email.trim())
+    setShowSharePrompt(true)
     onSaved?.()
+  }
+
+  const shareNow = () => {
+    const { subject, body } = buildEmailForExisting(fullName(caregiver), password, email.trim(), false)
+    window.location.href = `mailto:${encodeURIComponent(email.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    setShowSharePrompt(false)
+    setMsg({ kind: 'ok', text: 'Login created and email opened for you to send.' })
+  }
+
+  const shareLater = () => {
+    setShowSharePrompt(false)
+    setMsg({ kind: 'ok', text: "Login created. You can send it anytime using the \"Share login details\" button below — it'll work until this caregiver signs in and changes their password themselves." })
   }
 
   const saveChanges = async () => {
@@ -771,11 +797,39 @@ function AccountLink({ caregiver, onSaved }) {
     onSaved?.()
   }
 
+  const shareLoginDetails = async () => {
+    setMsg(null)
+    setBusy(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    const { data, error } = await supabase.functions.invoke('get-caregiver-login-secret', {
+      body: { caregiver_id: caregiver.id },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    setBusy(false)
+    if (error || data?.error) return setMsg({ kind: 'bad', text: data?.error || error.message })
+    const { subject, body } = buildEmailForExisting(fullName(caregiver), data.password, data.email, data.changedByCaregiver)
+    window.location.href = `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
+
   if (loading) return <p className="muted">Loading…</p>
 
   if (linkedEmail) {
     return (
       <>
+        {showSharePrompt && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,37,64,.45)', display: 'grid', placeItems: 'center', zIndex: 200, padding: '1rem' }}>
+            <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 400, padding: '1.4rem' }}>
+              <h3 style={{ marginTop: 0 }}>Share login details now?</h3>
+              <p className="muted" style={{ fontSize: '.9rem' }}>
+                Login created for {fullName(caregiver)}. Send their download link and login details now, or later?
+              </p>
+              <div style={{ display: 'flex', gap: '.5rem', marginTop: '1rem' }}>
+                <button className="btn btn-outline" style={{ flex: 1 }} onClick={shareLater}>Share later</button>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={shareNow}>Share now</button>
+              </div>
+            </div>
+          </div>
+        )}
         <p className="notice notice-ok">Linked to <b>{linkedEmail}</b>. They can sign in to the Care App with this email.</p>
         {msg && <p className={`notice ${msg.kind === 'ok' ? 'notice-ok' : 'notice-bad'}`}>{msg.text}</p>}
         <div className="form-row">
@@ -784,6 +838,7 @@ function AccountLink({ caregiver, onSaved }) {
         </div>
         <div style={{ display: 'flex', gap: '.5rem' }}>
           <button className="btn btn-primary" onClick={saveChanges} disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</button>
+          <button className="btn btn-outline" onClick={shareLoginDetails} disabled={busy}>Share login details</button>
           <button className="btn btn-outline" onClick={unlink}>Unlink login</button>
         </div>
       </>
