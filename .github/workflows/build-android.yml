@@ -64,8 +64,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cp caregiver-app/android/app/build/outputs/apk/release/app-release.apk /tmp/golden-years-care.apk
           gh release create "apk-${{ github.run_number }}" \
-            "caregiver-app/android/app/build/outputs/apk/release/app-release.apk#golden-years-care.apk" \
+            /tmp/golden-years-care.apk \
             --title "Care App build ${{ github.run_number }}" \
             --notes "Automated build from commit ${{ github.sha }}"
       - name: Write version.json pointing at the release asset
