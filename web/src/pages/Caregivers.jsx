@@ -389,6 +389,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
             <Field label="Expiry date" help="Leave blank if it doesn't expire"><input type="date" value={newCred.expiry_date} onChange={(e) => setNewCred({ ...newCred, expiry_date: e.target.value })} /></Field>
           </div>
           <button type="button" className="btn btn-outline mb" onClick={addCred}>+ Add credential</button>
+          <p className="muted" style={{ fontSize: '.78rem', marginTop: '-.4rem', marginBottom: '.8rem' }}>Tap this button after filling the fields above — nothing is saved until it's added to the list.</p>
         </>
       )}
 
@@ -412,6 +413,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
             <Field label="To"><input type="time" value={newAvail.end_time} onChange={(e) => setNewAvail({ ...newAvail, end_time: e.target.value })} /></Field>
           </div>
           <button type="button" className="btn btn-outline mb" onClick={addAvail}>+ Add availability</button>
+          <p className="muted" style={{ fontSize: '.78rem', marginTop: '-.4rem', marginBottom: '.8rem' }}>Tap this button after filling the fields above — nothing is saved until it's added to the list.</p>
         </>
       )}
 
