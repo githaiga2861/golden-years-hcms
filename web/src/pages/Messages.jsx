@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fullName } from '../lib/format'
 import { Empty, Modal, Field, HowThisWorks } from '../components/Ui'
+import { useMessageRealtime } from '../lib/useMessageRealtime'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -23,9 +24,10 @@ export default function Messages() {
         <div><h1 className="thread">Messages</h1><div className="sub">Chat with caregivers, message groups, and save reusable templates.</div></div>
       </div>
       <HowThisWorks>
-        A caregiver only gets an instant phone notification if they're signed in and online at the moment you send a message.
-        If they're offline or not signed in, the message will still be waiting for them the next time they open the app —
-        but they won't be alerted, so follow up another way (call or text) if something is time-sensitive.
+        Messages arrive instantly on both sides while devices are online. Under each message you send you'll see
+        <b> Sent</b> once it reaches the system, <b>Delivered</b> once the caregiver's device actually receives it, and
+        <b> Read</b> once they open it. A caregiver who is offline or signed out won't get a phone notification — the
+        message waits for them, and shows Delivered the moment their device picks it up.
       </HowThisWorks>
       <div className="toolbar mb">
         {PAGES.map((p) => (
@@ -56,11 +58,18 @@ function ConversationsPage() {
   const [showNew, setShowNew] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [templates, setTemplates] = useState([])
+  const [menuFor, setMenuFor] = useState(null)       // message id whose ⋯ menu is open
+  const [threadMenu, setThreadMenu] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editBody, setEditBody] = useState('')
   const bottomRef = useRef(null)
   const textRef = useRef(null)
+  const selectedRef = useRef(null)
+  useEffect(() => { selectedRef.current = selected }, [selected])
 
   const loadThreads = async () => {
     const { data: t } = await supabase.from('message_threads').select('*, caregivers(first_name,last_name)')
+      .is('office_hidden_at', null)
       .order('created_at', { ascending: false })
     setThreads(t || [])
 
@@ -71,7 +80,7 @@ function ConversationsPage() {
 
     if (userId) {
       const { data: unreadRows } = await supabase.from('messages').select('thread_id')
-        .is('read_at', null).neq('sender_id', userId)
+        .is('read_at', null).is('deleted_at', null).neq('sender_id', userId)
       const counts = {}
       for (const r of unreadRows || []) counts[r.thread_id] = (counts[r.thread_id] || 0) + 1
       setUnread(counts)
@@ -82,14 +91,36 @@ function ConversationsPage() {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id))
     supabase.from('message_templates').select('*').order('title').then(({ data }) => setTemplates(data || []))
   }, [])
-  useEffect(() => {
-    loadThreads()
-    const t = setInterval(loadThreads, 20000)
-    return () => clearInterval(t)
-  }, [userId]) // eslint-disable-line
+  useEffect(() => { loadThreads() }, [userId]) // eslint-disable-line
+
+  // ---- Live updates -------------------------------------------------
+  useMessageRealtime({
+    userId,
+    onInsert: async (m) => {
+      const open = selectedRef.current
+      if (open && m.thread_id === open.id) {
+        // Pull the row back with its sender name attached, so the bubble
+        // renders the same as it does on a fresh load.
+        const { data: full } = await supabase.from('messages').select('*, profiles(full_name)').eq('id', m.id).single()
+        setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, full || m])
+        if (m.sender_id !== userId) {
+          await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', m.id)
+        }
+      } else if (m.sender_id !== userId) {
+        setUnread((u) => ({ ...u, [m.thread_id]: (u[m.thread_id] || 0) + 1 }))
+      }
+      loadThreads()
+    },
+    onUpdate: (m) => {
+      setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, ...m } : x))
+      loadThreads()
+    },
+    onThreadChange: () => loadThreads(),
+  })
 
   const openThread = async (th) => {
     setSelected(th)
+    setThreadMenu(false)
     const { data: m } = await supabase.from('messages').select('*, profiles(full_name)')
       .eq('thread_id', th.id).order('created_at')
     setMessages(m || [])
@@ -117,13 +148,59 @@ function ConversationsPage() {
       thread_id: selected.id, sender_id: userId, body: text,
     })
     setSending(false)
-    if (!error) { setBody(''); openThread(selected); loadThreads() }
+    // The realtime INSERT event appends it for us — no manual reload needed.
+    if (!error) setBody('')
   }
 
   const useTemplate = (tpl) => {
     setBody(tpl.body)
     setShowTemplates(false)
     setTimeout(() => textRef.current?.focus(), 50)
+  }
+
+  // ---- Message actions ----------------------------------------------
+  const startEdit = (m) => { setEditingId(m.id); setEditBody(m.body); setMenuFor(null) }
+  const saveEdit = async () => {
+    const text = editBody.trim()
+    if (!text) return
+    await supabase.from('messages').update({ body: text, edited_at: new Date().toISOString() }).eq('id', editingId)
+    setEditingId(null); setEditBody('')
+  }
+  const unsend = async (m) => {
+    setMenuFor(null)
+    if (!confirm('Unsend this message? The caregiver will see that a message was unsent.')) return
+    await supabase.from('messages').update({ deleted_at: new Date().toISOString() }).eq('id', m.id)
+  }
+  const copyText = (m) => { navigator.clipboard?.writeText(m.body); setMenuFor(null) }
+
+  // ---- Conversation actions ------------------------------------------
+  const deleteConversation = async (th) => {
+    setThreadMenu(false)
+    if (!confirm(`Remove this conversation with ${fullName(th.caregivers)} from your list? The caregiver keeps their copy.`)) return
+    await supabase.from('message_threads').update({ office_hidden_at: new Date().toISOString() }).eq('id', th.id)
+    setSelected(null)
+    loadThreads()
+  }
+  const markAllRead = async (th) => {
+    setThreadMenu(false)
+    await supabase.from('messages').update({ read_at: new Date().toISOString() })
+      .eq('thread_id', th.id).is('read_at', null).neq('sender_id', userId)
+    setUnread((u) => ({ ...u, [th.id]: 0 }))
+  }
+  const markUnread = async (th) => {
+    setThreadMenu(false)
+    const theirs = messages.filter((x) => x.sender_id !== userId)
+    const last = theirs[theirs.length - 1]
+    if (!last) return
+    await supabase.from('messages').update({ read_at: null }).eq('id', last.id)
+    setUnread((u) => ({ ...u, [th.id]: (u[th.id] || 0) + 1 }))
+    setSelected(null)
+  }
+
+  const receipt = (m) => {
+    if (m.read_at) return `Read ${fmtTime(m.read_at)}`
+    if (m.delivered_at) return `Delivered ${fmtTime(m.delivered_at)}`
+    return `Sent ${fmtTime(m.created_at)}`
   }
 
   return (
@@ -138,21 +215,35 @@ function ConversationsPage() {
               const last = lastMsg[t.id]
               const unreadCount = unread[t.id] || 0
               return (
-                <button key={t.id} onClick={() => openThread(t)}
-                  style={{ display: 'block', width: '100%', textAlign: 'left', background: selected?.id === t.id ? 'var(--blue-soft)' : 'transparent',
-                    border: 'none', borderBottom: '1px solid var(--line)', padding: '.75rem 1rem', cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <b style={{ fontSize: '.92rem' }}>{t.caregivers ? fullName(t.caregivers) : 'Caregiver'}</b>
-                    {last && <span className="muted" style={{ fontSize: '.72rem', flexShrink: 0, marginLeft: '.4rem' }}>{fmtShort(last.last_at)}</span>}
-                  </div>
-                  <div className="muted" style={{ fontSize: '.78rem', fontWeight: 600 }}>{t.subject}</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.15rem' }}>
-                    <span className="muted" style={{ fontSize: '.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {last?.last_body || 'No messages yet'}
-                    </span>
-                    {unreadCount > 0 && <span className="badge" style={{ flexShrink: 0, marginLeft: '.4rem' }}>{unreadCount}</span>}
-                  </div>
-                </button>
+                <div key={t.id} style={{ position: 'relative', borderBottom: '1px solid var(--line)' }}>
+                  <button onClick={() => openThread(t)}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', background: selected?.id === t.id ? 'var(--blue-soft)' : 'transparent',
+                      border: 'none', padding: '.75rem 2.2rem .75rem 1rem', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <b style={{ fontSize: '.92rem' }}>{t.caregivers ? fullName(t.caregivers) : 'Caregiver'}</b>
+                      {last && <span className="muted" style={{ fontSize: '.72rem', flexShrink: 0, marginLeft: '.4rem' }}>{fmtShort(last.last_at)}</span>}
+                    </div>
+                    <div className="muted" style={{ fontSize: '.78rem', fontWeight: 600 }}>{t.subject}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.15rem' }}>
+                      <span className="muted" style={{ fontSize: '.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {last?.last_body || 'No messages yet'}
+                      </span>
+                      {unreadCount > 0 && <span className="badge" style={{ flexShrink: 0, marginLeft: '.4rem' }}>{unreadCount}</span>}
+                    </div>
+                  </button>
+                  <button title="Conversation options" onClick={() => { setSelected(t); setThreadMenu((s) => selected?.id === t.id ? !s : true) }}
+                    style={{ position: 'absolute', top: 8, right: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '1.1rem', lineHeight: 1, padding: '.15rem .3rem' }}>
+                    ⋯
+                  </button>
+                  {threadMenu && selected?.id === t.id && (
+                    <ThreadMenu
+                      onClose={() => setThreadMenu(false)}
+                      onMarkRead={() => markAllRead(t)}
+                      onMarkUnread={() => markUnread(t)}
+                      onDelete={() => deleteConversation(t)}
+                    />
+                  )}
+                </div>
               )
             })}
           </div>
@@ -163,28 +254,84 @@ function ConversationsPage() {
             <div style={{ padding: '1.2rem' }}><Empty title="Select a conversation" hint="Choose one on the left, or start a new one." /></div>
           ) : (
             <>
-              <div style={{ padding: '.9rem 1.1rem', borderBottom: '1px solid var(--line)', background: '#fff' }}>
-                <h3 style={{ margin: 0 }}>{fullName(selected.caregivers)}</h3>
-                <p className="muted" style={{ margin: 0, fontSize: '.84rem' }}>{selected.subject}</p>
+              <div style={{ padding: '.9rem 1.1rem', borderBottom: '1px solid var(--line)', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0 }}>{fullName(selected.caregivers)}</h3>
+                  <p className="muted" style={{ margin: 0, fontSize: '.84rem' }}>{selected.subject}</p>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <button title="Conversation options" onClick={() => setThreadMenu((s) => !s)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '1.3rem', lineHeight: 1, padding: '.1rem .4rem' }}>
+                    ⋯
+                  </button>
+                  {threadMenu && (
+                    <ThreadMenu
+                      onClose={() => setThreadMenu(false)}
+                      onMarkRead={() => markAllRead(selected)}
+                      onMarkUnread={() => markUnread(selected)}
+                      onDelete={() => deleteConversation(selected)}
+                    />
+                  )}
+                </div>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
                 {messages.map((m) => {
                   const mine = m.sender_id === userId
+                  if (m.deleted_at) {
+                    return (
+                      <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
+                        <div className="muted" style={{ fontSize: '.8rem', fontStyle: 'italic', padding: '.5rem .8rem', border: '1px dashed var(--line)', borderRadius: 12 }}>
+                          This message was unsent
+                        </div>
+                      </div>
+                    )
+                  }
                   return (
                     <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
-                      <div style={{
-                        maxWidth: '68%', padding: '.6rem .85rem', borderRadius: mine ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
-                        background: mine ? 'var(--blue)' : '#fff', color: mine ? '#fff' : 'var(--ink)',
-                        boxShadow: '0 1px 2px rgba(10,37,64,.08)',
-                      }}>
-                        <div style={{ fontSize: '.92rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
-                        <div style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
-                          {mine ? (
-                            <>Sent {fmtTime(m.created_at)}{m.read_at && ` · Read ${fmtTime(m.read_at)}`}</>
+                      <div style={{ position: 'relative', maxWidth: '68%' }}>
+                        <div style={{
+                          padding: '.6rem .85rem', borderRadius: mine ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
+                          background: mine ? 'var(--blue)' : '#fff', color: mine ? '#fff' : 'var(--ink)',
+                          boxShadow: '0 1px 2px rgba(10,37,64,.08)',
+                        }}>
+                          {editingId === m.id ? (
+                            <>
+                              <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} rows={3}
+                                style={{ width: '100%', fontFamily: 'inherit', fontSize: '.9rem', borderRadius: 8, border: '1px solid var(--line)', padding: '.4rem .5rem' }} />
+                              <div style={{ display: 'flex', gap: '.4rem', marginTop: '.4rem', justifyContent: 'flex-end' }}>
+                                <button className="btn btn-quiet" style={{ padding: '.2rem .6rem', fontSize: '.8rem' }} onClick={() => setEditingId(null)}>Cancel</button>
+                                <button className="btn btn-gold" style={{ padding: '.2rem .6rem', fontSize: '.8rem' }} onClick={saveEdit}>Save</button>
+                              </div>
+                            </>
                           ) : (
-                            <>{m.profiles?.full_name || fullName(selected.caregivers)} · {fmtTime(m.created_at)}</>
+                            <>
+                              <div style={{ fontSize: '.92rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
+                              <div style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
+                                {mine ? (
+                                  <>{receipt(m)}{m.edited_at && ' · edited'}</>
+                                ) : (
+                                  <>{m.profiles?.full_name || fullName(selected.caregivers)} · {fmtTime(m.created_at)}{m.edited_at && ' · edited'}</>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
+                        {editingId !== m.id && (
+                          <button title="Message options" onClick={() => setMenuFor((s) => s === m.id ? null : m.id)}
+                            style={{ position: 'absolute', top: 2, [mine ? 'left' : 'right']: -22, background: 'none', border: 'none',
+                              cursor: 'pointer', color: 'var(--muted)', fontSize: '1rem', lineHeight: 1, padding: '.1rem .2rem' }}>
+                            ⋯
+                          </button>
+                        )}
+                        {menuFor === m.id && (
+                          <MessageMenu
+                            mine={mine}
+                            onClose={() => setMenuFor(null)}
+                            onCopy={() => copyText(m)}
+                            onEdit={() => startEdit(m)}
+                            onUnsend={() => unsend(m)}
+                          />
+                        )}
                       </div>
                     </div>
                   )
@@ -241,6 +388,48 @@ function ConversationsPage() {
   )
 }
 
+// Small dropdown shared by the message and conversation ⋯ buttons.
+function MenuShell({ children, onClose }) {
+  useEffect(() => {
+    const close = () => onClose()
+    // Defer so the click that opened the menu doesn't immediately close it.
+    const t = setTimeout(() => document.addEventListener('click', close), 0)
+    return () => { clearTimeout(t); document.removeEventListener('click', close) }
+  }, [onClose])
+  return (
+    <div onClick={(e) => e.stopPropagation()}
+      style={{ position: 'absolute', top: '100%', right: 0, zIndex: 40, minWidth: 190, background: '#fff',
+        border: '1px solid var(--line)', borderRadius: 10, boxShadow: '0 8px 24px rgba(10,37,64,.18)', padding: '.3rem', marginTop: '.2rem' }}>
+      {children}
+    </div>
+  )
+}
+
+const menuItemStyle = {
+  display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none',
+  padding: '.5rem .7rem', borderRadius: 7, cursor: 'pointer', fontSize: '.86rem', color: 'var(--ink)',
+}
+
+function MessageMenu({ mine, onClose, onCopy, onEdit, onUnsend }) {
+  return (
+    <MenuShell onClose={onClose}>
+      <button style={menuItemStyle} onClick={onCopy}>Copy text</button>
+      {mine && <button style={menuItemStyle} onClick={onEdit}>Edit message</button>}
+      {mine && <button style={{ ...menuItemStyle, color: 'var(--bad)' }} onClick={onUnsend}>Unsend message</button>}
+    </MenuShell>
+  )
+}
+
+function ThreadMenu({ onClose, onMarkRead, onMarkUnread, onDelete }) {
+  return (
+    <MenuShell onClose={onClose}>
+      <button style={menuItemStyle} onClick={onMarkRead}>Mark all as read</button>
+      <button style={menuItemStyle} onClick={onMarkUnread}>Mark as unread</button>
+      <button style={{ ...menuItemStyle, color: 'var(--bad)' }} onClick={onDelete}>Delete conversation</button>
+    </MenuShell>
+  )
+}
+
 function NewConversationModal({ onClose, onCreated }) {
   const [caregivers, setCaregivers] = useState([])
   const [caregiverId, setCaregiverId] = useState('')
@@ -260,7 +449,7 @@ function NewConversationModal({ onClose, onCreated }) {
     if (!subject.trim()) return setErr('Enter a subject for this conversation.')
     setBusy(true)
     const { data: th, error } = await supabase.from('message_threads')
-      .insert({ caregiver_id: caregiverId, subject: subject.trim() }).select().single()
+      .insert({ caregiver_id: caregiverId, subject: subject.trim() }).select('*, caregivers(first_name,last_name)').single()
     if (error) { setErr(error.message); setBusy(false); return }
 
     if (firstMessage.trim()) {

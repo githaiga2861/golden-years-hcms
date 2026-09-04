@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
 import { useTutorial } from '../context/TutorialContext'
 import { DEMO_THREADS, DEMO_LAST_MSG, getDemoMessages } from '../lib/tutorialDemoData'
+import { useMessageRealtime } from '../lib/useMessageRealtime'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -27,6 +28,8 @@ export default function Messages() {
   const [showNew, setShowNew] = useState(false)
   const bottomRef = useRef(null)
   const textRef = useRef(null)
+  const selectedRef = useRef(null)
+  useEffect(() => { selectedRef.current = selected }, [selected])
 
   const loadThreads = async () => {
     if (tutorial?.running) { setThreads(DEMO_THREADS); setLastMsg(DEMO_LAST_MSG); setUnread({}); return }
@@ -41,12 +44,40 @@ export default function Messages() {
     setLastMsg(lastMap)
 
     const { data: unreadRows } = await supabase.from('messages').select('thread_id')
-      .is('read_at', null).neq('sender_id', session.user.id)
+      .is('read_at', null).is('deleted_at', null).neq('sender_id', session.user.id)
     const counts = {}
     for (const r of unreadRows || []) counts[r.thread_id] = (counts[r.thread_id] || 0) + 1
     setUnread(counts)
   }
   useEffect(() => { loadThreads() }, [caregiver?.id, tutorial?.running]) // eslint-disable-line
+
+  // ---- Live updates -------------------------------------------------
+  // The hook stamps delivered_at the moment a message reaches this device,
+  // which is what makes the office's "Delivered" receipt truthful.
+  useMessageRealtime({
+    userId: tutorial?.running ? null : session?.user?.id,
+    onInsert: async (m) => {
+      const open = selectedRef.current
+      if (open && m.thread_id === open.id) {
+        const { data: full } = await supabase.from('messages').select('*, profiles(full_name)').eq('id', m.id).single()
+        setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, full || m])
+        if (m.sender_id !== session.user.id) {
+          await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', m.id)
+          recheckMsg()
+        }
+      } else if (m.sender_id !== session.user.id) {
+        setUnread((u) => ({ ...u, [m.thread_id]: (u[m.thread_id] || 0) + 1 }))
+        recheckMsg()
+      }
+      loadThreads()
+    },
+    onUpdate: (m) => {
+      setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, ...m } : x))
+      recheckMsg()
+      loadThreads()
+    },
+    onThreadChange: () => loadThreads(),
+  })
 
   // The tutorial can't simulate a real tap into a conversation — so when
   // its current step needs to show messages inside a thread, open the
@@ -94,7 +125,14 @@ export default function Messages() {
       thread_id: selected.id, sender_id: session.user.id, body: text,
     })
     setSending(false)
-    if (!error) { setBody(''); openThread(selected); loadThreads() }
+    // Realtime appends it for us.
+    if (!error) setBody('')
+  }
+
+  const receipt = (m) => {
+    if (m.read_at) return `Read ${fmtTime(m.read_at)}`
+    if (m.delivered_at) return `Delivered ${fmtTime(m.delivered_at)}`
+    return `Sent ${fmtTime(m.created_at)}`
   }
 
   if (!caregiver) {
@@ -123,6 +161,15 @@ export default function Messages() {
           )}
           {messages.map((m) => {
             const mine = m.sender_id === session.user.id
+            if (m.deleted_at) {
+              return (
+                <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
+                  <div className="muted" style={{ fontSize: '.8rem', fontStyle: 'italic', padding: '.5rem .8rem', border: '1px dashed var(--line)', borderRadius: 12 }}>
+                    This message was unsent
+                  </div>
+                </div>
+              )
+            }
             return (
               <div key={m.id} data-tutorial={m.id === 'demo-msg-1' ? 'messages-bubble' : undefined}
                 style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: '.7rem' }}>
@@ -134,9 +181,9 @@ export default function Messages() {
                   <div style={{ fontSize: '.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
                   <div data-tutorial={m.id === 'demo-msg-3' ? 'messages-read-receipt' : undefined} style={{ fontSize: '.68rem', marginTop: '.3rem', opacity: .8, textAlign: 'right' }}>
                     {mine ? (
-                      <>Sent {fmtTime(m.created_at)}{m.read_at && ` · Read ${fmtTime(m.read_at)}`}</>
+                      <>{receipt(m)}{m.edited_at && ' · edited'}</>
                     ) : (
-                      <>{m.profiles?.full_name || 'Office'} · {fmtTime(m.created_at)}</>
+                      <>{m.profiles?.full_name || 'Office'} · {fmtTime(m.created_at)}{m.edited_at && ' · edited'}</>
                     )}
                   </div>
                 </div>
