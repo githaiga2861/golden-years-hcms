@@ -806,7 +806,10 @@ function AccountLink({ caregiver, onSaved }) {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
     setBusy(false)
-    if (error || data?.error) return setMsg({ kind: 'bad', text: data?.error || error.message })
+    if (error || data?.error) {
+      const detail = data?.error || error?.context?.body?.error || error?.message
+      return setMsg({ kind: 'bad', text: detail })
+    }
     const { subject, body } = buildEmailForExisting(fullName(caregiver), data.password, data.email, data.changedByCaregiver)
     window.location.href = `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
