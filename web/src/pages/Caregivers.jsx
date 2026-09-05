@@ -8,6 +8,7 @@ import EditableSelect from '../components/EditableSelect'
 import { createCaregiverAccount } from '../lib/createCaregiverAccount'
 import { updateCaregiverAccount } from '../lib/updateCaregiverAccount'
 import { buildEmailForExisting, buildEmailForNew } from '../lib/emailTemplates'
+import PasswordInput from '../components/PasswordInput'
 
 export default function Caregivers() {
   const location = useLocation()
@@ -458,7 +459,7 @@ function CaregiverModal({ caregiver, onClose, onSaved }) {
                   <div className="form-row">
                     <Field label="Login email"><input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} /></Field>
                     <Field label="Temporary password" help="At least 8 characters. Share this with them securely.">
-                      <input type="text" value={acctPassword} onChange={(e) => setAcctPassword(e.target.value)} />
+                      <PasswordInput value={acctPassword} onChange={(e) => setAcctPassword(e.target.value)} />
                     </Field>
                   </div>
                   <p className="muted" style={{ fontSize: '.84rem' }}>
@@ -846,7 +847,7 @@ function AccountLink({ caregiver, onSaved }) {
         {msg && <p className={`notice ${msg.kind === 'ok' ? 'notice-ok' : 'notice-bad'}`}>{msg.text}</p>}
         <div className="form-row">
           <Field label="Login email"><input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} /></Field>
-          <Field label="New password" help="Leave blank to keep the current password."><input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} /></Field>
+          <Field label="New password" help="Leave blank to keep the current password."><PasswordInput value={editPassword} onChange={(e) => setEditPassword(e.target.value)} /></Field>
         </div>
         <div style={{ display: 'flex', gap: '.5rem' }}>
           <button className="btn btn-primary" onClick={saveChanges} disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</button>
@@ -863,7 +864,7 @@ function AccountLink({ caregiver, onSaved }) {
       {msg && <p className={`notice ${msg.kind === 'ok' ? 'notice-ok' : 'notice-bad'}`}>{msg.text}</p>}
       <div className="form-row">
         <Field label="Login email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Temporary password" help="At least 8 characters."><input type="text" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+        <Field label="Temporary password" help="At least 8 characters."><PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
       </div>
       <button className="btn btn-primary" onClick={create} disabled={busy}>{busy ? 'Creating…' : 'Create login'}</button>
     </>

@@ -5,6 +5,7 @@ import { DEMO_CREDENTIALS } from '../lib/tutorialDemoData'
 import { pendingCount, syncQueue } from '../lib/offline'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import PasswordInput from '../components/PasswordInput'
 
 const statusPill = (expiry) => {
   if (!expiry) return null
@@ -198,15 +199,15 @@ function ChangePasswordModal({ email, onClose }) {
             {err && <p className="notice notice-bad">{err}</p>}
             <div className="field">
               <label>Current password</label>
-              <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+              <PasswordInput value={current} onChange={(e) => setCurrent(e.target.value)} />
             </div>
             <div className="field">
               <label>New password</label>
-              <input type="password" value={next} onChange={(e) => setNext(e.target.value)} />
+              <PasswordInput value={next} onChange={(e) => setNext(e.target.value)} />
             </div>
             <div className="field">
               <label>Confirm new password</label>
-              <input type="password" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} />
+              <PasswordInput value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} />
             </div>
             <div style={{ display: 'flex', gap: '.5rem', marginTop: '.8rem' }}>
               <button className="btn btn-quiet" onClick={onClose}>Cancel</button>

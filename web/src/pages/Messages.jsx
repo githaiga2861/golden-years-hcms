@@ -131,6 +131,24 @@ function ConversationsPage() {
     }
   }
 
+  // Realtime reliably delivers INSERTs, but UPDATE events (which is what
+  // read/delivery receipts are) don't always reach the office session. So
+  // while a conversation is open, refresh just the receipt columns on a
+  // short timer — one tiny query, and it keeps the ticks honest.
+  useEffect(() => {
+    if (!selected) return
+    const refreshReceipts = async () => {
+      const { data } = await supabase.from('messages')
+        .select('id, delivered_at, read_at, edited_at, deleted_at, body')
+        .eq('thread_id', selected.id)
+      if (!data) return
+      const byId = Object.fromEntries(data.map((r) => [r.id, r]))
+      setMessages((prev) => prev.map((m) => byId[m.id] ? { ...m, ...byId[m.id] } : m))
+    }
+    const t = setInterval(refreshReceipts, 4000)
+    return () => clearInterval(t)
+  }, [selected?.id]) // eslint-disable-line
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages.length])
 
   const autoGrow = (el) => {
