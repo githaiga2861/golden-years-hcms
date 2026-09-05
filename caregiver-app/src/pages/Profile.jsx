@@ -3,7 +3,8 @@ import { useUpdate } from '../context/UpdateContext'
 import { useTutorial } from '../context/TutorialContext'
 import { DEMO_CREDENTIALS } from '../lib/tutorialDemoData'
 import { pendingCount, syncQueue } from '../lib/offline'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import PasswordInput from '../components/PasswordInput'
 
@@ -16,6 +17,12 @@ const statusPill = (expiry) => {
 }
 
 export default function Profile() {
+  const routeState = useLocation().state
+  const highlightUpdate = !!routeState?.highlightUpdate
+  const updateRef = useRef(null)
+  useEffect(() => {
+    if (highlightUpdate) updateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlightUpdate])
   const { caregiver, session, signOut } = useAuth()
   const updateInfo = useUpdate()
   const tutorial = useTutorial()
@@ -144,7 +151,7 @@ export default function Profile() {
         {!updateInfo.checking && !updateInfo.error && updateInfo.available && (
           <>
             <p style={{ fontSize: '.9rem', marginBottom: '.6rem' }}><span className="pill pill-gold">Update available</span></p>
-            <a className="btn btn-primary" href={updateInfo.apkUrl} download style={{ display: 'inline-block' }}>
+            <a ref={updateRef} className={`btn btn-primary${highlightUpdate ? ' pulse-attention' : ''}`} href={updateInfo.apkUrl} download style={{ display: 'inline-block' }}>
               Download update
             </a>
             <p className="muted" style={{ fontSize: '.78rem', marginTop: '.5rem' }}>

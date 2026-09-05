@@ -74,9 +74,12 @@ export default function PermissionsGate({ children }) {
   }
 
   const allGranted = status && status.notifications === 'granted' && status.location === 'granted'
+  useEffect(() => {
+    if (allGranted) localStorage.setItem('gy-permissions-done', '1')
+  }, [allGranted])
 
   // Nothing to do on web, or once everything's granted.
-  if (!status || allGranted || dismissed) return children
+  if (!status || allGranted || dismissed || localStorage.getItem('gy-permissions-done') === '1') return children
 
   const Row = ({ label, state, why }) => (
     <div style={{ display: 'flex', gap: '.7rem', alignItems: 'flex-start', marginBottom: '.9rem' }}>

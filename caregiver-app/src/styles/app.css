@@ -107,3 +107,9 @@ button { font-family: var(--font-body); }
   position: relative;
   z-index: 9991;
 }
+
+@keyframes pulse-attention {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, .6); transform: scale(1); }
+  50% { box-shadow: 0 0 0 14px rgba(201, 162, 39, 0); transform: scale(1.04); }
+}
+.pulse-attention { animation: pulse-attention 1.4s ease-in-out infinite; }

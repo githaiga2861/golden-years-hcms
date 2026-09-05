@@ -36,7 +36,16 @@ export function UpdateProvider({ children }) {
           title: 'App update available', body: 'A new version of the Care App is ready to download.',
         })
       }
-      if (!available) alreadyNotified.current = false
+      if (!available) {
+        alreadyNotified.current = false
+        // They're on the newest build now, so any "update available"
+        // notification is stale — clear it rather than make them tap it.
+        if (caregiver?.id) {
+          await supabase.from('push_notifications_log')
+            .update({ read_at: new Date().toISOString() })
+            .eq('caregiver_id', caregiver.id).eq('kind', 'app_update').is('read_at', null)
+        }
+      }
     } catch {
       setState((s) => ({ ...s, checking: false, error: true }))
     }
