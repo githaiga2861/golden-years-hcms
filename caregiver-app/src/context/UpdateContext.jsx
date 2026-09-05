@@ -24,9 +24,9 @@ export function UpdateProvider({ children }) {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const data = await r.json()
       const available = data.version !== MY_VERSION
-      // apkUrl now points directly at a GitHub Release asset — the APK
-      // is too large for normal git/CDN hosting.
-      const apkUrl = data.apkUrl || ''
+      // Always download through our own domain — the proxy there fetches
+      // the real file server-side, so caregivers never see a GitHub URL.
+      const apkUrl = 'https://hcms.goldenyearshomecarewa.com/api/download'
       setState({ checking: false, available, error: false, live: data, apkUrl })
 
       if (available && !alreadyNotified.current && caregiver?.id) {

@@ -29,13 +29,16 @@ export default function PermissionsGate({ children }) {
       notifications = p.receive
     } catch { /* leave as prompt */ }
 
-    let location = 'prompt'
-    try {
-      if (navigator.permissions?.query) {
-        const p = await navigator.permissions.query({ name: 'geolocation' })
-        location = p.state
-      }
-    } catch { /* leave as prompt */ }
+    let location = localStorage.getItem('gy-location-granted') === '1' ? 'granted' : 'prompt'
+    if (location !== 'granted') {
+      try {
+        if (navigator.permissions?.query) {
+          const p = await navigator.permissions.query({ name: 'geolocation' })
+          location = p.state
+          if (p.state === 'granted') localStorage.setItem('gy-location-granted', '1')
+        }
+      } catch { /* not supported in this WebView — rely on the fix below */ }
+    }
 
     setStatus({ notifications, location })
   }, [isNative])
@@ -60,7 +63,7 @@ export default function PermissionsGate({ children }) {
     await new Promise((resolve) => {
       if (!navigator.geolocation) return resolve()
       navigator.geolocation.getCurrentPosition(
-        () => resolve(),
+        () => { localStorage.setItem('gy-location-granted', '1'); resolve() },
         (err) => { if (err.code === err.PERMISSION_DENIED) setBlocked(true); resolve() },
         { enableHighAccuracy: true, timeout: 10000 }
       )
