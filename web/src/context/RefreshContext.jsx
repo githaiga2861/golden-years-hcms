@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react'
+import { useAutoRefresh } from '../lib/useAutoRefresh'
 
 /**
  * A single "refresh everything on this page" mechanism shared across the
@@ -17,6 +18,9 @@ export function RefreshProvider({ children }) {
     setTick((t) => t + 1)
     setTimeout(() => setSpinning(false), 700)
   }, [])
+
+  // Keep the open page in step with the database automatically.
+  useAutoRefresh(refresh)
 
   return (
     <RefreshContext.Provider value={{ tick, spinning, refresh }}>
