@@ -9,6 +9,7 @@ import TutorialOverlay from './components/TutorialOverlay'
 import TutorialPrompt from './components/TutorialPrompt'
 import NotificationBell from './components/NotificationBell'
 import { registerPush } from './lib/push'
+import PermissionsGate from './components/PermissionsGate'
 import { setNavigator } from './lib/navigation'
 import { startSyncLoop, syncQueue, pendingCount } from './lib/offline'
 import logo from './assets/logo.png'
@@ -126,7 +127,7 @@ function Frame() {
           <SyncButton />
         </div>
       </header>
-      <main className="content"><Outlet key={tick} /></main>
+      <main className="content"><PermissionsGate><Outlet key={tick} /></PermissionsGate></main>
       <nav className="tabbar">
         <NavLink to="/" end data-tutorial="nav-today" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{SunIcon}</span>Today</NavLink>
         <NavLink to="/week" data-tutorial="nav-schedule" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{GridIcon}</span>Schedule</NavLink>
