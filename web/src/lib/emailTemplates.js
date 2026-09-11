@@ -34,3 +34,14 @@ Thank you,
 Golden Years Home Health`,
   }
 }
+
+/**
+ * Opens Gmail's own web compose window, pre-filled — always Gmail,
+ * regardless of whatever the device's default mail app is set to (which
+ * could be Outlook or anything else). Opens in a new tab so the office
+ * app itself is never navigated away from.
+ */
+export function openGmailCompose(to, subject, body) {
+  const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  window.open(url, '_blank')
+}

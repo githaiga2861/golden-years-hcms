@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import EditableSelect from '../components/EditableSelect'
 import { createCaregiverAccount } from '../lib/createCaregiverAccount'
 import { updateCaregiverAccount } from '../lib/updateCaregiverAccount'
-import { buildEmailForExisting, buildEmailForNew } from '../lib/emailTemplates'
+import { buildEmailForExisting, buildEmailForNew, openGmailCompose } from '../lib/emailTemplates'
 import PasswordInput from '../components/PasswordInput'
 
 export default function Caregivers() {
@@ -763,7 +763,7 @@ function AccountLink({ caregiver, onSaved }) {
 
   const shareNow = () => {
     const { subject, body } = buildEmailForExisting(fullName(caregiver), password, email.trim(), false)
-    window.location.href = `mailto:${encodeURIComponent(email.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    openGmailCompose(email.trim(), subject, body)
     setShowSharePrompt(false)
     setMsg({ kind: 'ok', text: 'Login created and email opened for you to send.' })
   }
@@ -821,7 +821,7 @@ function AccountLink({ caregiver, onSaved }) {
     }
     if (data?.error) return setMsg({ kind: 'bad', text: data.error })
     const { subject, body } = buildEmailForExisting(fullName(caregiver), data.password, data.email, data.changedByCaregiver)
-    window.location.href = `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    openGmailCompose(data.email, subject, body)
   }
 
   if (loading) return <p className="muted">Loading…</p>

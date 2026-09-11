@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fullName } from '../lib/format'
 import { Modal, HowThisWorks } from '../components/Ui'
-import { buildEmailForExisting, buildEmailForNew } from '../lib/emailTemplates'
+import { buildEmailForExisting, buildEmailForNew, openGmailCompose } from '../lib/emailTemplates'
 
 
 let rowIdSeq = 1
@@ -94,8 +94,7 @@ function ShareDownloadLinkModal({ onClose }) {
   }
 
   const send = (row) => {
-    const url = `mailto:${encodeURIComponent(row.email)}?subject=${encodeURIComponent(row.subject)}&body=${encodeURIComponent(row.body)}`
-    window.location.href = url
+    openGmailCompose(row.email, row.subject, row.body)
   }
 
   return (
