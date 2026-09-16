@@ -25,6 +25,11 @@ jobs:
           java-version: '17'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Google removed the legacy 'tools' package from the SDK repository;
+          # the action still requests it by default, which now fails every
+          # build. Request only what we actually need.
+          packages: 'platform-tools'
       - name: Install dependencies
         working-directory: caregiver-app
         run: npm ci
