@@ -31,6 +31,7 @@ export default function Visit() {
   const [plan, setPlan] = useState(null)
   const [planTasks, setPlanTasks] = useState([])
   const [visit, setVisit] = useState(null)      // server visit row (null if offline-created)
+  const [gpsRequired, setGpsRequired] = useState(true) // office setting; fetched below
   const [tasks, setTasks] = useState([])        // visit_tasks (server) or local snapshot (offline)
   const [note, setNote] = useState('')
   const [savedNotes, setSavedNotes] = useState([])
@@ -171,6 +172,11 @@ export default function Visit() {
     setMileageAutoNote(`Auto-calculated from your route: ${rounded} mi`)
   }
 
+  useEffect(() => {
+    supabase.from('app_settings').select('gps_required').eq('id', 1).maybeSingle()
+      .then(({ data }) => setGpsRequired(data ? data.gps_required : true))
+  }, [])
+
   const clockIn = async () => {
     setBusy(true)
     const pos = await getPosition()
@@ -185,7 +191,7 @@ export default function Visit() {
 
     const at = new Date().toISOString()
 
-    if (client?.latitude != null && client?.longitude != null) {
+    if (gpsRequired && client?.latitude != null && client?.longitude != null) {
       const d = distanceM(pos.lat, pos.lng, client.latitude, client.longitude)
       const radius = client.geofence_radius_m || 150
       if (d > radius) {
@@ -256,7 +262,7 @@ export default function Visit() {
       return
     }
 
-    if (client?.latitude != null && client?.longitude != null) {
+    if (gpsRequired && client?.latitude != null && client?.longitude != null) {
       const d = distanceM(pos.lat, pos.lng, client.latitude, client.longitude)
       const radius = client.geofence_radius_m || 150
       if (d > radius) {
