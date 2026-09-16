@@ -173,8 +173,11 @@ export default function Visit() {
   }
 
   useEffect(() => {
-    supabase.from('app_settings').select('gps_required').eq('id', 1).maybeSingle()
-      .then(({ data }) => setGpsRequired(data ? data.gps_required : true))
+    // A caregiver's own session can't read app_settings directly (it also
+    // holds billing details) — this function exposes just this one value.
+    supabase.rpc('get_gps_required').then(({ data, error }) => {
+      if (!error) setGpsRequired(data !== false)
+    })
   }, [])
 
   const clockIn = async () => {
