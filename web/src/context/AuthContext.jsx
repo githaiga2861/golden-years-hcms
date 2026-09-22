@@ -4,7 +4,7 @@ import { supabase, isConfigured } from '../lib/supabase'
 const AuthCtx = createContext(null)
 export const useAuth = () => useContext(AuthCtx)
 
-const OFFICE_ROLES = ['admin', 'scheduler', 'coordinator']
+const OFFICE_ROLES = ['admin', 'scheduler', 'coordinator', 'tech_support']
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
