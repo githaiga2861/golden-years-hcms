@@ -47,7 +47,6 @@ function SummaryReports() {
   const run = async () => {
     setLoading(true)
     try {
-    console.log('report: start')
     const startISO = new Date(range.start + 'T00:00').toISOString()
     const endISO = new Date(range.end + 'T23:59:59').toISOString()
 
@@ -77,7 +76,6 @@ function SummaryReports() {
       totalHours, totalPayroll, totalBilled, invoiceCount: invoices.length,
       visits,
     })
-    console.log('report: done', visits.length, shifts.length, invoices.length)
     } catch (e) { console.error('report failed', e); alert('Report failed: ' + e.message) }
     setLoading(false)
   }
@@ -97,12 +95,12 @@ function SummaryReports() {
       <div className="form-row" style={{ alignItems: 'flex-end' }}>
         <Field label="From"><input type="date" value={range.start} onChange={(e) => setRange({ ...range, start: e.target.value })} /></Field>
         <Field label="To"><input type="date" value={range.end} onChange={(e) => setRange({ ...range, end: e.target.value })} /></Field>
-        <button className="btn btn-primary" onClick={run} disabled={loading}>{loading ? 'Running…' : 'Run report'}</button>
+        <button className="btn btn-primary" onClick={async () => { await run(); setTimeout(() => document.getElementById('report-results')?.scrollIntoView({ behavior: 'smooth' }), 100) }} disabled={loading}>{loading ? 'Running…' : 'Run report'}</button>
       </div>
 
       {stats && (
         <>
-          <h3 className="thread mt">Scheduling</h3>
+          <h3 className="thread mt" id="report-results">Scheduling</h3>
           <div className="grid grid-4 mb">
             <div className="card card-pad stat"><div className="label">Total shifts</div><div className="value">{stats.shiftsTotal}</div></div>
             <div className="card card-pad stat"><div className="label">Completed</div><div className="value">{stats.shiftsCompleted}</div></div>
