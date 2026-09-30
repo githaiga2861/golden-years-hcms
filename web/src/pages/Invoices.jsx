@@ -1,3 +1,4 @@
+import { downloadInvoicePdf } from '../lib/pdf'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDate, fmtMoney, fullName, toISODate, addDays } from '../lib/format'
@@ -114,7 +115,7 @@ function InvoiceView({ invoice, onClose }) {
   return (
     <Modal title={invoice.invoice_number} onClose={onClose} wide footer={
       <>
-        <button className="btn btn-outline" onClick={() => window.print()}>Print / Save PDF</button>
+        <button className="btn btn-outline" onClick={() => downloadInvoicePdf(invoice)}>Print / Save PDF</button>
         <button className="btn btn-quiet" onClick={onClose}>Close</button>
       </>
     }>
