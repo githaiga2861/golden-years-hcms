@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { fmtTime, fullName, startOfWeek, addDays, toISODate, WEEKDAYS } from '../lib/format'
+import { fmtTime, fullName, startOfWeek, addDays, toISODate, WEEKDAYS, ptDate, ptTime, ptToISO, ptToday } from '../lib/format'
 import { Modal, Field, Pill, HowThisWorks } from '../components/Ui'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function Schedule() {
-  const [weekStart, setWeekStart] = useState(startOfWeek(new Date()))
+  const [weekStart, setWeekStartRaw] = useState(() => {
+    try { const v = sessionStorage.getItem('gy_sched_week'); if (v) return startOfWeek(new Date(v + 'T00:00')) } catch (e) { /* ignore */ }
+    return startOfWeek(new Date(ptToday() + 'T00:00'))
+  })
+  const setWeekStart = (d) => { try { sessionStorage.setItem('gy_sched_week', toISODate(d)) } catch (e) { /* ignore */ } setWeekStartRaw(d) }
   const [shifts, setShifts] = useState([])
   const [clients, setClients] = useState([])
   const [caregivers, setCaregivers] = useState([])
@@ -19,7 +23,7 @@ export default function Schedule() {
   const load = () => {
     supabase.from('shifts')
       .select('*, clients(first_name,last_name), caregivers(first_name,last_name)')
-      .gte('starts_at', weekStart.toISOString()).lt('starts_at', weekEnd.toISOString())
+      .gte('starts_at', ptToISO(toISODate(weekStart), '00:00')).lt('starts_at', ptToISO(toISODate(weekEnd), '00:00'))
       .order('starts_at')
       .then(({ data }) => setShifts(data || []))
   }
@@ -35,14 +39,14 @@ export default function Schedule() {
 
   const days = [...Array(7)].map((_, i) => addDays(weekStart, i))
   const byDay = (d) =>
-    shifts.filter((s) => new Date(s.starts_at).toDateString() === d.toDateString())
+    shifts.filter((s) => ptDate(s.starts_at) === toISODate(d))
       .filter((s) => !filterCg || s.caregiver_id === filterCg)
 
   return (
     <>
       <div className="page-head">
         <div><h1 className="thread">Schedule</h1><div className="sub">Assign caregivers, manage shifts, spot gaps early.</div></div>
-        <button className="btn btn-primary" onClick={() => setEditing({})}>+ New shift</button>
+        <button className="btn btn-primary" onClick={() => setEditing({ defaultDate: (toISODate(weekStart) <= ptToday() && ptToday() < toISODate(weekEnd)) ? null : toISODate(weekStart) })}>+ New shift</button>
       </div>
       <HowThisWorks>
         Shifts left without a caregiver assigned show up as "open" in the Care App's Schedule tab — any caregiver in
@@ -52,7 +56,7 @@ export default function Schedule() {
 
       <div className="cal-toolbar mb">
         <button className="btn btn-outline" onClick={() => setWeekStart(addDays(weekStart, -7))}>← Prev</button>
-        <button className="btn btn-quiet" onClick={() => setWeekStart(startOfWeek(new Date()))}>This week</button>
+        <button className="btn btn-quiet" onClick={() => setWeekStart(startOfWeek(new Date(ptToday() + 'T00:00')))}>This week</button>
         <button className="btn btn-outline" onClick={() => setWeekStart(addDays(weekStart, 7))}>Next →</button>
         <b style={{ marginLeft: '.4rem' }}>
           {weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – {addDays(weekStart, 6).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -65,7 +69,7 @@ export default function Schedule() {
 
       <div className="cal-grid">
         {days.map((d, i) => (
-          <div key={i} className={`cal-day ${d.toDateString() === new Date().toDateString() ? 'today' : ''}`}>
+          <div key={i} className={`cal-day ${toISODate(d) === ptToday() ? 'today' : ''}`}>
             <div className="d-head"><span>{DAY_LABELS[d.getDay()]}</span><span>{d.getDate()}</span></div>
             {byDay(d).map((s) => (
               <button key={s.id} className={`shift-chip ${s.status}`} onClick={() => setEditing(s)}>
@@ -84,7 +88,7 @@ export default function Schedule() {
 
       {editing !== null && (
         <ShiftModal
-          shift={editing.id ? editing : null}
+          shift={editing.id ? editing : null} defaultDate={editing.defaultDate}
           clients={clients} caregivers={caregivers} availability={availability}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); load() }}
@@ -94,14 +98,14 @@ export default function Schedule() {
   )
 }
 
-function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved }) {
+function ShiftModal({ shift, defaultDate, clients, caregivers, availability, onClose, onSaved }) {
   const isNew = !shift
   const [form, setForm] = useState(() => ({
     client_id: shift?.client_id || '',
     caregiver_id: shift?.caregiver_id || '',
-    date: toISODate(shift?.starts_at || new Date()),
-    start: shift ? new Date(shift.starts_at).toTimeString().slice(0, 5) : '09:00',
-    end: shift ? new Date(shift.ends_at).toTimeString().slice(0, 5) : '13:00',
+    date: shift ? ptDate(shift.starts_at) : (defaultDate || ptToday()),
+    start: shift ? ptTime(shift.starts_at) : '09:00',
+    end: shift ? ptTime(shift.ends_at) : '13:00',
     service_type: shift?.service_type || 'Personal Care',
     notes: shift?.notes || '',
     repeat: false, repeatDays: [], repeatUntil: toISODate(addDays(new Date(), 28)),
@@ -128,10 +132,12 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
     supabase.from('clients').select('authorized_hours_per_week').eq('id', form.client_id).single()
       .then(async ({ data: cl }) => {
         if (!live || !cl?.authorized_hours_per_week) { if (live) setHoursWarning(null); return }
-        const weekStart = new Date(form.date + 'T00:00'); weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        const { data } = await supabase.from('v_client_weekly_scheduled_hours').select('scheduled_hours')
-          .eq('client_id', form.client_id).eq('week_start', weekStart.toISOString()).maybeSingle()
-        const already = data?.scheduled_hours || 0
+        const ws = startOfWeek(new Date(form.date + 'T00:00'))
+        let wq = supabase.from('shifts').select('id,starts_at,ends_at').eq('client_id', form.client_id).neq('status', 'cancelled')
+          .gte('starts_at', ptToISO(toISODate(ws), '00:00')).lt('starts_at', ptToISO(toISODate(addDays(ws, 7)), '00:00'))
+        if (shift?.id) wq = wq.neq('id', shift.id)
+        const { data: wkRows } = await wq
+        const already = (wkRows || []).reduce((t, r) => t + (new Date(r.ends_at) - new Date(r.starts_at)) / 3600000, 0)
         const thisShiftHrs = (new Date(`2000-01-01T${form.end}`) - new Date(`2000-01-01T${form.start}`)) / 3600000
         const total = already + thisShiftHrs
         if (live) setHoursWarning(total > cl.authorized_hours_per_week
@@ -189,8 +195,8 @@ function ShiftModal({ shift, clients, caregivers, availability, onClose, onSaved
         const row = {
           client_id: form.client_id,
           caregiver_id: form.caregiver_id || null,
-          starts_at: new Date(`${form.date}T${form.start}`).toISOString(),
-          ends_at: new Date(`${form.date}T${form.end}`).toISOString(),
+          starts_at: ptToISO(form.date, form.start),
+          ends_at: ptToISO(form.date, form.end),
           status: form.caregiver_id ? 'assigned' : 'open',
           service_type: form.service_type,
           notes: form.notes || null,
