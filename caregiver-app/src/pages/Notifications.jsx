@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
@@ -30,9 +30,11 @@ export default function Notifications() {
     if (!caregiver) return
     const { data: shiftClients } = await supabase.from('shifts')
       .select('client_id, clients(first_name,last_name)').eq('caregiver_id', caregiver.id)
-    const ids = [...new Set((shiftClients || []).map((s) => s.client_id))]
+    const { data: poolClients } = await supabase.from('client_caregivers').select('client_id, clients(first_name,last_name)').eq('caregiver_id', caregiver.id)
+    const allClients = [...(shiftClients || []), ...(poolClients || [])]
+    const ids = [...new Set(allClients.map((s) => s.client_id))]
     const names = {}
-    ;(shiftClients || []).forEach((s) => { if (s.clients) names[s.client_id] = `${s.clients.first_name} ${s.clients.last_name}` })
+    allClients.forEach((s) => { if (s.clients) names[s.client_id] = `${s.clients.first_name} ${s.clients.last_name}` })
 
     const [updatesRes, readsRes, shiftNotifRes] = await Promise.all([
       ids.length ? supabase.from('client_updates').select('*').in('client_id', ids).order('created_at', { ascending: false }).limit(60)
@@ -54,8 +56,41 @@ export default function Notifications() {
   }
   useEffect(() => { load() }, [caregiver?.id, tutorial?.running]) // eslint-disable-line
 
+  // Items are marked read simply by being seen on screen (no tapping needed).
+  const markedRef = useRef(new Set())
+  const pendingRef = useRef([])
+  const flushTimer = useRef(null)
+  useEffect(() => {
+    if (!caregiver || tutorial?.running || typeof IntersectionObserver === 'undefined') return
+    const flush = async () => {
+      const batch = pendingRef.current; pendingRef.current = []
+      if (!batch.length) return
+      const clientIds = batch.filter((b) => b.kind === 'client').map((b) => b.id)
+      const shiftIds = batch.filter((b) => b.kind === 'shift').map((b) => b.id)
+      if (clientIds.length) await supabase.from('update_reads').insert(clientIds.map((id) => ({ update_id: id, caregiver_id: caregiver.id })))
+      if (shiftIds.length) await supabase.from('caregiver_notifications').update({ read_at: new Date().toISOString() }).in('id', shiftIds)
+      recheckUpdates()
+    }
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return
+        const { seenKind: kind, seenId: id } = en.target.dataset
+        const key = `${kind}-${id}`
+        if (!kind || markedRef.current.has(key)) return
+        markedRef.current.add(key)
+        pendingRef.current.push({ kind, id })
+        obs.unobserve(en.target)
+      })
+      clearTimeout(flushTimer.current)
+      flushTimer.current = setTimeout(flush, 1200)
+    }, { threshold: 0.6 })
+    document.querySelectorAll('[data-seen-kind]').forEach((el) => obs.observe(el))
+    return () => { obs.disconnect(); clearTimeout(flushTimer.current); flush() }
+  }, [items, caregiver?.id, tutorial?.running]) // eslint-disable-line
+
   const markRead = async (item) => {
-    if (!item.unread) return
+    if (!item.unread || markedRef.current.has(`${item.kind}-${item.id}`)) return
+    markedRef.current.add(`${item.kind}-${item.id}`)
     if (item.kind === 'client') await supabase.from('update_reads').insert({ update_id: item.id, caregiver_id: caregiver.id })
     else await supabase.from('caregiver_notifications').update({ read_at: new Date().toISOString() }).eq('id', item.id)
     setItems((prev) => prev.map((i) => i.id === item.id && i.kind === item.kind ? { ...i, unread: false } : i))
@@ -63,8 +98,9 @@ export default function Notifications() {
   }
 
   const markAllRead = async () => {
-    const unread = items.filter((i) => i.unread)
+    const unread = items.filter((i) => i.unread && !markedRef.current.has(`${i.kind}-${i.id}`))
     if (unread.length === 0) return
+    unread.forEach((i) => markedRef.current.add(`${i.kind}-${i.id}`))
     const clientIds = unread.filter((i) => i.kind === 'client').map((i) => i.id)
     const shiftIds = unread.filter((i) => i.kind === 'shift').map((i) => i.id)
     if (clientIds.length) await supabase.from('update_reads').insert(clientIds.map((id) => ({ update_id: id, caregiver_id: caregiver.id })))
@@ -107,7 +143,7 @@ export default function Notifications() {
       )}
 
       {items.map((i, idx) => (
-        <div key={`${i.kind}-${i.id}`} className="card" data-tutorial={idx === 0 ? 'updates-list' : undefined} onClick={() => markRead(i)}
+        <div key={`${i.kind}-${i.id}`} className="card" data-tutorial={idx === 0 ? 'updates-list' : undefined} data-seen-kind={i.unread ? i.kind : undefined} data-seen-id={i.unread ? i.id : undefined} onClick={() => markRead(i)}
           style={{ borderLeft: i.unread ? '4px solid var(--gold)' : '4px solid transparent', cursor: i.unread ? 'pointer' : 'default' }}>
           <div data-tutorial={idx === 0 ? 'updates-item' : undefined} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span className={`pill ${i.kind === 'shift' ? 'pill-warn' : 'pill-info'}`}>{TYPE_LABEL[i.update_type] || 'Update'}</span>

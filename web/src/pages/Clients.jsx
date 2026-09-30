@@ -329,6 +329,7 @@ function ClientModal({ client, onClose, onSaved }) {
         client_id: cid,
         pattern: auth.pattern,
         weekday_hours: auth.pattern === 'weekly' ? auth.weekday_hours : {},
+        ...(isNew && auth.pattern === 'weekly' && auth.windows ? { weekday_windows: windowsOut(auth.windows).json } : {}),
         daily_hours: auth.pattern === 'daily' ? (Number(auth.daily_hours) || null) : null,
         monthly_hours: auth.pattern === 'monthly' ? (Number(auth.monthly_hours) || null) : null,
         effective_until: auth.effective_until || null,
@@ -676,16 +677,11 @@ function ClientModal({ client, onClose, onSaved }) {
             </select>
           </Field>
 
-          {auth.pattern === 'weekly' && (
-            <div className="form-row-3" style={{ rowGap: '.6rem' }}>
-              {WEEKDAY_LABELS.map((label, i) => (
-                <Field key={i} label={label}>
-                  <input type="number" step="0.25" min="0" value={auth.weekday_hours[i]}
-                    onChange={(e) => setAuth({ ...auth, weekday_hours: { ...auth.weekday_hours, [i]: e.target.value } })} />
-                </Field>
-              ))}
-            </div>
-          )}
+          {auth.pattern === 'weekly' && (isNew ? (
+            <WeekWindowsPicker value={auth.windows} onChange={(w) => setAuth({ ...auth, windows: w, weekday_hours: windowsOut(w).hours })} />
+          ) : (
+            <p className="notice notice-warn">Service days and times are edited from this client's profile: open the client, then Operational tab, then Service hours.</p>
+          ))}
           {auth.pattern === 'daily' && (
             <Field label="Hours per day"><input type="number" step="0.25" min="0" value={auth.daily_hours}
               onChange={(e) => setAuth({ ...auth, daily_hours: e.target.value })} /></Field>
@@ -998,6 +994,8 @@ function OperationalTab({ client }) {
     <>
       <p><b>Authorized hours/week:</b> {authorized ?? 'Not set'}</p>
       <p><b>Scheduled this week:</b> {scheduled ?? '—'} {over && <span className="pill pill-bad" style={{ marginLeft: '.5rem' }}>Over authorized hours</span>}</p>
+      <h3 className="thread mt">Service hours</h3>
+      <ServiceHoursEditor clientId={client.id} />
       <h3 className="thread mt">Assigned caregiver pool</h3>
       {caregivers.length === 0 ? <p className="muted">No caregivers assigned yet — set this on the Details tab (Edit details → Operational).</p> : (
         <ul style={{ paddingLeft: '1.2rem' }}>{caregivers.map((c, i) => <li key={i}>{fullName(c)}</li>)}</ul>
@@ -1175,5 +1173,110 @@ function Documents({ clientId }) {
         </tbody>
       </table>
     </>
+  )
+}
+
+
+/* ---- Service hours: day-of-week + time-range picker ---- */
+const SH_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const shHours = (st, en) => {
+  const [a, b] = st.split(':').map(Number), [c, d] = en.split(':').map(Number)
+  let m = (c * 60 + d) - (a * 60 + b)
+  if (m <= 0) m += 1440
+  return m / 60
+}
+const shDefault = () => Object.fromEntries(SH_DAYS.map((_, i) => [i, { on: false, start: '09:00', end: '13:00' }]))
+const windowsOut = (w) => {
+  const hours = {}, json = {}
+  const src = w || shDefault()
+  SH_DAYS.forEach((_, i) => {
+    const x = src[i]
+    if (x.on) { hours[i] = Math.round(shHours(x.start, x.end) * 100) / 100; json[i] = [{ start: x.start, end: x.end }] }
+    else hours[i] = 0
+  })
+  return { hours, json }
+}
+function shFromAuth(a) {
+  const w = shDefault()
+  const win = a?.weekday_windows
+  if (win && Object.keys(win).length) {
+    SH_DAYS.forEach((_, i) => { const f = win[i]?.[0]; if (f) w[i] = { on: true, start: f.start, end: f.end } })
+    return { w, derived: false }
+  }
+  let any = false
+  if (a?.pattern === 'weekly') {
+    SH_DAYS.forEach((_, i) => {
+      const h = Number(a.weekday_hours?.[i] || 0)
+      if (h > 0) {
+        any = true
+        const mins = 9 * 60 + Math.round(h * 60)
+        w[i] = { on: true, start: '09:00', end: String(Math.floor(mins / 60) % 24).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0') }
+      }
+    })
+  }
+  return { w, derived: any }
+}
+
+function WeekWindowsPicker({ value, onChange }) {
+  const w = value || shDefault()
+  const upd = (i, patch) => onChange({ ...w, [i]: { ...w[i], ...patch } })
+  return (
+    <div className="mb">
+      {SH_DAYS.map((label, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '.6rem', padding: '.4rem 0', borderBottom: '1px solid var(--line)', flexWrap: 'wrap' }}>
+          <label style={{ width: 120, display: 'flex', gap: '.4rem', alignItems: 'center', fontWeight: 600 }}>
+            <input type="checkbox" checked={w[i].on} onChange={(e) => upd(i, { on: e.target.checked })} />{label}
+          </label>
+          {w[i].on ? (
+            <>
+              <input type="time" value={w[i].start} onChange={(e) => upd(i, { start: e.target.value })} style={{ width: 130 }} />
+              <span>to</span>
+              <input type="time" value={w[i].end} onChange={(e) => upd(i, { end: e.target.value })} style={{ width: 130 }} />
+              <span className="muted">{shHours(w[i].start, w[i].end).toFixed(2)} h</span>
+            </>
+          ) : <span className="muted">No service</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ServiceHoursEditor({ clientId }) {
+  const [w, setW] = useState(null)
+  const [derived, setDerived] = useState(false)
+  const [until, setUntil] = useState('')
+  const [pattern, setPattern] = useState('weekly')
+  const [msg, setMsg] = useState(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    supabase.from('client_authorization').select('*').eq('client_id', clientId).maybeSingle().then(({ data }) => {
+      const r = shFromAuth(data)
+      setW(r.w); setDerived(r.derived); setUntil(data?.effective_until || ''); setPattern(data?.pattern || 'weekly')
+    })
+  }, [clientId])
+  const save = async () => {
+    setBusy(true); setMsg(null)
+    const { hours, json } = windowsOut(w)
+    const { error } = await supabase.from('client_authorization').upsert({
+      client_id: clientId, pattern: 'weekly', weekday_hours: hours, weekday_windows: json,
+      daily_hours: null, monthly_hours: null, effective_until: until || null, updated_at: new Date().toISOString(),
+    })
+    setBusy(false)
+    if (error) setMsg({ kind: 'bad', text: error.message })
+    else { setDerived(false); setPattern('weekly'); setMsg({ kind: 'ok', text: 'Service hours saved.' }) }
+  }
+  if (!w) return <p className="muted">Loading…</p>
+  return (
+    <div className="card card-pad mb">
+      {pattern !== 'weekly' && <p className="notice notice-warn">This client uses a {pattern} pattern. Saving here switches to weekly days and times.</p>}
+      {derived && <p className="notice notice-warn">Only hours per day were set before. Set the real start and end times, then save to enforce them.</p>}
+      <WeekWindowsPicker value={w} onChange={setW} />
+      <Field label="Repeats weekly until (optional)" help="Leave blank if ongoing.">
+        <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+      </Field>
+      {msg && <p className={`notice notice-${msg.kind}`}>{msg.text}</p>}
+      <button className="btn btn-primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save service hours'}</button>
+      <p className="muted" style={{ fontSize: '.82rem', marginTop: '.5rem' }}>Shifts outside these days and times are blocked when scheduling (times are Pacific).</p>
+    </div>
   )
 }
