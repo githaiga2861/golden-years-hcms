@@ -64,7 +64,7 @@ function footer(doc, text) {
   }
 }
 
-export async function downloadInvoicePdf(invoice) {
+async function buildInvoicePdf(invoice) {
   const [itemsRes, clientRes, setRes, logo] = await Promise.all([
     supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id).order('service_date'),
     supabase.from('clients').select('first_name,last_name,address,city,state,zip,billing_email').eq('id', invoice.client_id).maybeSingle(),
@@ -109,7 +109,7 @@ export async function downloadInvoicePdf(invoice) {
   autoTable(doc, {
     startY: Math.max(y, 78) + 4,
     head: [['Date', 'Service', 'Hours', 'Rate', 'Amount']],
-    body: items.map((i) => [dDate(i.service_date), i.description, Number(i.hours).toFixed(2), money(i.rate), money(i.amount)]),
+    body: items.map((i) => [dDate(String(i.service_date || '').slice(0, 10)), String(i.description || ''), Number(i.hours || 0).toFixed(2), money(i.rate), money(i.amount)]),
     headStyles: { fillColor: NAVY, textColor: 255, fontSize: 9 },
     bodyStyles: { fontSize: 9 },
     alternateRowStyles: { fillColor: [244, 247, 251] },
@@ -205,4 +205,13 @@ export async function downloadReportPdf(stats, range) {
 
   footer(doc, `${AGENCY.name}  |  Report ${range.start} to ${range.end}  |  Confidential`)
   doc.save(`gy-report-${range.start}-to-${range.end}.pdf`)
+}
+
+export async function downloadInvoicePdf(invoice) {
+  try {
+    await buildInvoicePdf(invoice)
+  } catch (e) {
+    console.error('Invoice PDF failed', e)
+    alert('Could not create the invoice PDF: ' + (e?.message || e))
+  }
 }
