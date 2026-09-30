@@ -46,6 +46,8 @@ function SummaryReports() {
 
   const run = async () => {
     setLoading(true)
+    try {
+    console.log('report: start')
     const startISO = new Date(range.start + 'T00:00').toISOString()
     const endISO = new Date(range.end + 'T23:59:59').toISOString()
 
@@ -75,6 +77,8 @@ function SummaryReports() {
       totalHours, totalPayroll, totalBilled, invoiceCount: invoices.length,
       visits,
     })
+    console.log('report: done', visits.length, shifts.length, invoices.length)
+    } catch (e) { console.error('report failed', e); alert('Report failed: ' + e.message) }
     setLoading(false)
   }
   useEffect(() => { run() }, []) // eslint-disable-line
