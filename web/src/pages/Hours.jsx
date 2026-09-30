@@ -15,7 +15,7 @@ export default function Hours() {
   const [detail, setDetail] = useState(null)
 
   const load = () => {
-    let q = supabase.from('v_visit_ledger').select('*').not('clock_out_at', 'is', null)
+    let q = supabase.from('v_visit_ledger').select('*')
       .order('clock_in_at', { ascending: false }).limit(300)
     if (filter === 'pending') q = q.eq('verified', false)
     if (filter === 'verified') q = q.eq('verified', true)
@@ -81,7 +81,7 @@ export default function Hours() {
                   <td><button className="btn btn-quiet" onClick={() => setDetail(r)}>Details</button></td>
                   <td>{r.verified
                     ? (r.billed ? <Pill kind="gold">Billed</Pill> : <Pill kind="ok">Verified</Pill>)
-                    : <button className="btn btn-primary" style={{ padding: '.35rem .8rem' }} onClick={() => verify(r.visit_id)}>Verify</button>}</td>
+                    : !r.clock_out_at ? <Pill kind="gold">Still clocked in</Pill> : <button className="btn btn-primary" style={{ padding: '.35rem .8rem' }} onClick={() => verify(r.visit_id)}>Verify</button>}</td>
                 </tr>
               ))}
             </tbody>
