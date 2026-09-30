@@ -64,6 +64,7 @@ export default function Invoices() {
 }
 
 function GenerateModal({ clients, onClose, onDone }) {
+  const [includeBilled, setIncludeBilled] = useState(false)
   const [f, setF] = useState({
     client_id: '', start: toISODate(addDays(new Date(), -7)), end: toISODate(new Date()),
   })
@@ -74,7 +75,7 @@ function GenerateModal({ clients, onClose, onDone }) {
     setErr('')
     if (!f.client_id) return setErr('Choose a client.')
     setBusy(true)
-    const { error } = await supabase.rpc('generate_invoice', {
+    const { error } = await supabase.rpc('generate_invoice', { p_include_billed: includeBilled,
       p_client_id: f.client_id, p_start: f.start, p_end: f.end,
     })
     setBusy(false)
@@ -101,6 +102,10 @@ function GenerateModal({ clients, onClose, onDone }) {
         <Field label="Period start"><input type="date" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} /></Field>
         <Field label="Period end"><input type="date" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} /></Field>
       </div>
+    <label style={{ display: 'flex', gap: '.5rem', alignItems: 'flex-start', fontSize: '.88rem', marginTop: '.6rem' }}>
+        <input type="checkbox" checked={includeBilled} onChange={(e) => setIncludeBilled(e.target.checked)} style={{ marginTop: 3 }} />
+        <span><b>Include already-billed visits</b><br /><span className="muted">Lists every verified visit in the range, even ones on earlier invoices. Older invoices are not changed, so void them if you don't want them counted twice.</span></span>
+      </label>
     </Modal>
   )
 }
