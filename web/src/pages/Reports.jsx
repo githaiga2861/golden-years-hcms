@@ -56,7 +56,10 @@ function SummaryReports() {
     ])
 
     const shifts = shiftsRes.data || []
+    const errs = [shiftsRes.error, visitsRes.error, invoicesRes.error].filter(Boolean)
+    if (errs.length) { console.error(errs); alert('Report error: ' + errs[0].message) }
     const visits = (visitsRes.data || []).filter((v) => v.clock_out_at)
+      .map((v) => ({ ...v, worked_hours: Number(v.worked_hours || 0), pay_rate: Number(v.pay_rate || 0) }))
     const invoices = invoicesRes.data || []
 
     const totalHours = visits.reduce((sum, v) => sum + (v.worked_hours || 0), 0)
