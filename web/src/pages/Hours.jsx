@@ -1,3 +1,4 @@
+import { VisitDetailModal, AdminClockOutModal } from '../components/VisitDetailModal'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDate, fmtTime, fmtHours, fmtMoney } from '../lib/format'
@@ -13,6 +14,8 @@ export default function Hours() {
   const [rows, setRows] = useState([])
   const [filter, setFilter] = useState('pending') // pending | verified | all
   const [detail, setDetail] = useState(null)
+  const [detailMode, setDetailMode] = useState('view')
+  const [clockOutRow, setClockOutRow] = useState(null)
 
   const load = () => {
     let q = supabase.from('v_visit_ledger').select('*')
@@ -22,6 +25,12 @@ export default function Hours() {
     q.then(({ data }) => setRows(data || []))
   }
   useEffect(load, [filter]) // eslint-disable-line
+  useEffect(() => {
+    const ch = supabase.channel('hours-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => load())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [filter]) // eslint-disable-line
 
   const verify = async (visitId) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -71,17 +80,23 @@ export default function Hours() {
             <thead><tr><th>Date</th><th>Client</th><th>Caregiver</th><th>Clocked</th><th className="num">Hours</th><th>GPS</th><th></th><th></th></tr></thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.visit_id}>
+                <tr key={r.visit_id} onClick={() => { setDetailMode('view'); setDetail(r) }} style={{ cursor: 'pointer' }}>
                   <td>{fmtDate(r.clock_in_at)}</td>
                   <td><b>{r.client_name}</b></td>
                   <td>{r.caregiver_name}</td>
                   <td className="muted">{fmtTime(r.clock_in_at)} – {fmtTime(r.clock_out_at)}</td>
                   <td className="num"><b>{fmtHours(r.worked_hours)}</b></td>
                   <td>{r.location_ok === true ? <Pill kind="ok">On site</Pill> : r.location_ok === false ? <Pill kind="bad">Mismatch</Pill> : <Pill kind="muted">No GPS check</Pill>}</td>
-                  <td><button className="btn btn-quiet" onClick={() => setDetail(r)}>Details</button></td>
-                  <td>{r.verified
+                  <td><button className="btn btn-quiet" onClick={(e) => { e.stopPropagation(); setDetailMode('view'); setDetail(r) }}>Details</button></td>
+                  <td onClick={(e) => e.stopPropagation()}>{r.verified
                     ? (r.billed ? <Pill kind="gold">Billed</Pill> : <Pill kind="ok">Verified</Pill>)
-                    : !r.clock_out_at ? <Pill kind="gold">Still clocked in</Pill> : <button className="btn btn-primary" style={{ padding: '.35rem .8rem' }} onClick={() => verify(r.visit_id)}>Verify</button>}</td>
+                    : !r.clock_out_at
+                      ? (filter === 'pending'
+                          ? <div style={{ display: 'flex', gap: '.4rem', alignItems: 'center', flexWrap: 'wrap' }}><Pill kind="gold">Still clocked in</Pill><button className="btn btn-outline" style={{ padding: '.3rem .7rem' }} onClick={() => setClockOutRow(r)}>Clock out</button></div>
+                          : <Pill kind="gold">Still clocked in</Pill>)
+                      : filter === 'pending'
+                        ? <button className="btn btn-primary" style={{ padding: '.35rem .8rem' }} onClick={() => { setDetailMode('verify'); setDetail(r) }}>Verify</button>
+                        : <Pill kind="warn">Pending</Pill>}</td>
                 </tr>
               ))}
             </tbody>
@@ -89,7 +104,8 @@ export default function Hours() {
         )}
       </div>
 
-      {detail && <VisitDetail row={detail} onClose={() => setDetail(null)} />}
+      {detail && <VisitDetailModal row={detail} mode={filter === 'pending' ? detailMode : 'view'} onClose={() => setDetail(null)} onVerified={() => { setDetail(null); load() }} />}
+      {clockOutRow && <AdminClockOutModal row={clockOutRow} onClose={() => setClockOutRow(null)} onDone={() => { setClockOutRow(null); load() }} />}
     </>
   )
 }

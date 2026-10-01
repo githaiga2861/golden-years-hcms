@@ -221,13 +221,30 @@ export default function Visit() {
     setMileageAutoNote(`Recorded from your journey: ${miles} mi`)
   }
 
+  const refreshGps = () => supabase.rpc('get_gps_required').then(({ data, error }) => {
+    if (!error) setGpsRequired(data !== false)
+  })
   useEffect(() => {
-    // A caregiver's own session can't read app_settings directly (it also
-    // holds billing details) — this function exposes just this one value.
-    supabase.rpc('get_gps_required').then(({ data, error }) => {
-      if (!error) setGpsRequired(data !== false)
-    })
-  }, [])
+    // Live GPS setting: instant broadcast from the office, plus a safety poll.
+    refreshGps()
+    const ch = supabase.channel('app-settings')
+      .on('broadcast', { event: 'gps_required_changed' }, () => refreshGps())
+      .subscribe()
+    const t = setInterval(refreshGps, 15000)
+    const onVis = () => { if (document.visibilityState === 'visible') refreshGps() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { supabase.removeChannel(ch); clearInterval(t); document.removeEventListener('visibilitychange', onVis) }
+  }, []) // eslint-disable-line
+
+  useEffect(() => {
+    // Live visit: if the office clocks this visit out, show it immediately.
+    const ch = supabase.channel(`visit-live-${shiftId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => { load().catch(() => {}) })
+      .subscribe()
+    const onVis = () => { if (document.visibilityState === 'visible') load().catch(() => {}) }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { supabase.removeChannel(ch); document.removeEventListener('visibilitychange', onVis) }
+  }, [shiftId]) // eslint-disable-line
 
   const clockIn = async () => {
     setBusy(true)
@@ -576,11 +593,14 @@ export default function Visit() {
           </>
         )}
         {clockedOut && (
-          <p className="pill pill-ok">Visit complete · {fmtT(clockInAt)} – {fmtT(clockOutAt)}</p>
+          <>
+            <p className="pill pill-ok">Visit complete · {fmtT(clockInAt)} – {fmtT(clockOutAt)}</p>
+            {visit?.clocked_out_by_admin && <p className="notice notice-warn" style={{ marginTop: '.5rem' }}>The office clocked you out at {fmtT(clockOutAt)}. Your hours are counted to that time.</p>}
+          </>
         )}
       </div>
 
-      {showSignoff && (
+      {showSignoff && !clockedOut && (
         <div className="card" style={{ border: '2px solid var(--gold)' }}>
           <h3>Sign off to complete the visit</h3>
           <p className="muted" style={{ fontSize: '.86rem' }}>Both signatures are required. The date/time is recorded automatically.</p>

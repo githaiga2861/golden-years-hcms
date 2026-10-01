@@ -24,6 +24,14 @@ export default function Invoices() {
     load()
   }
 
+  const deleteInvoice = async (inv) => {
+    if (!window.confirm(`Delete invoice ${inv.invoice_number} (${fmtMoney(inv.total)})?\n\nIts visits will be released so they can be invoiced again. This cannot be undone.`)) return
+    const { error } = await supabase.rpc('delete_invoice', { p_invoice_id: inv.id })
+    if (error) return alert('Could not delete invoice: ' + error.message)
+    if (viewing?.id === inv.id) setViewing(null)
+    load()
+  }
+
   return (
     <>
       <div className="page-head">
@@ -49,7 +57,7 @@ export default function Invoices() {
                     </select>
                   </td>
                   <td>{r.qb_synced ? <Pill kind="ok">Synced</Pill> : <Pill kind="muted">Not synced</Pill>}</td>
-                  <td><button className="btn btn-quiet" onClick={() => setViewing(r)}>Open</button></td>
+                  <td><button className="btn btn-quiet" onClick={() => setViewing(r)}>Open</button> <button className="btn btn-quiet" style={{ color: 'var(--bad)' }} onClick={() => deleteInvoice(r)}>Delete</button></td>
                 </tr>
               ))}
             </tbody>
