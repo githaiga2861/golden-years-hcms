@@ -53,6 +53,25 @@ function header(doc, logo, agency) {
   doc.setDrawColor(...GOLD).setLineWidth(0.8).line(14, 33, W - 14, 33)
 }
 
+const INVOICE_NAME = 'Golden Years Home Health Supported Living LLC'
+function invoiceHeader(doc, logo, agency) {
+  const W = doc.internal.pageSize.getWidth()
+  let x = 14
+  if (logo) {
+    const h = 20, w = (logo.w / logo.h) * h
+    doc.addImage(logo.dataUrl, 'PNG', 14, 10, w, h)
+    x = 14 + w + 4
+  }
+  doc.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(14)
+  const lines = doc.splitTextToSize(INVOICE_NAME, W - 14 - 62 - x)
+  doc.text(lines, x, lines.length > 1 ? 17 : 21)
+  doc.setTextColor(...GREY).setFont('helvetica', 'normal').setFontSize(8)
+  doc.text(`${AGENCY.addr1}, ${AGENCY.addr2}`, W - 14, 15, { align: 'right' })
+  doc.text(`Tel ${agency.phone}`, W - 14, 20, { align: 'right' })
+  doc.text(agency.email, W - 14, 25, { align: 'right' })
+  doc.setDrawColor(...GOLD).setLineWidth(0.8).line(14, 33, W - 14, 33)
+}
+
 function footer(doc, text) {
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight()
   const n = doc.getNumberOfPages()
@@ -77,7 +96,7 @@ async function buildInvoicePdf(invoice) {
 
   const doc = new jsPDF({ unit: 'mm', format: 'letter' })
   const W = doc.internal.pageSize.getWidth()
-  header(doc, logo, agency)
+  invoiceHeader(doc, logo, agency)
 
   // Title block
   doc.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(24).text('INVOICE', W - 14, 46, { align: 'right' })
@@ -142,7 +161,7 @@ async function buildInvoicePdf(invoice) {
   doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...NAVY)
   doc.text('Thank you for trusting us with your care.', 14, ty + 32)
 
-  footer(doc, `${AGENCY.name}  |  Invoice ${invoice.invoice_number}`)
+  footer(doc, `${INVOICE_NAME}  |  Invoice ${invoice.invoice_number}`)
   doc.save(`${invoice.invoice_number}.pdf`)
 }
 
