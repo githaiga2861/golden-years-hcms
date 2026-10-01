@@ -62,9 +62,14 @@ function invoiceHeader(doc, logo, agency) {
     doc.addImage(logo.dataUrl, 'PNG', 14, 10, w, h)
     x = 14 + w + 4
   }
-  doc.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(14)
-  const lines = doc.splitTextToSize(INVOICE_NAME, W - 14 - 62 - x)
-  doc.text(lines, x, lines.length > 1 ? 17 : 21)
+  doc.setTextColor(...GREY).setFont('helvetica', 'normal').setFontSize(8)
+  const rightW = Math.max(doc.getTextWidth(`${AGENCY.addr1}, ${AGENCY.addr2}`), doc.getTextWidth(agency.email), doc.getTextWidth(`Tel ${agency.phone}`))
+  const avail = W - 14 - rightW - 6 - x
+  doc.setTextColor(...NAVY).setFont('helvetica', 'bold')
+  let fs = 14
+  doc.setFontSize(fs)
+  while (fs > 8 && doc.getTextWidth(INVOICE_NAME) > avail) { fs -= 0.5; doc.setFontSize(fs) }
+  doc.text(INVOICE_NAME, x, 21)
   doc.setTextColor(...GREY).setFont('helvetica', 'normal').setFontSize(8)
   doc.text(`${AGENCY.addr1}, ${AGENCY.addr2}`, W - 14, 15, { align: 'right' })
   doc.text(`Tel ${agency.phone}`, W - 14, 20, { align: 'right' })
