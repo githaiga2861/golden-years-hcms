@@ -215,3 +215,435 @@ export async function downloadInvoicePdf(invoice) {
     alert('Could not create the invoice PDF: ' + (e?.message || e))
   }
 }
+
+/* ================= Thorough reports: full agency / per client / per caregiver ================= */
+const rNorm = (s) => String(s || '').replace(/\s+/g, ' ').trim()
+const rKey = (s) => rNorm(s).toUpperCase()
+const rNum = (v) => Number(v || 0)
+const rName = (r) => (r ? rNorm(`${r.first_name || ''} ${r.last_name || ''}`) : '')
+const rSlug = (s) => rNorm(s).toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const rHrs = (n) => rNum(n).toFixed(2)
+const rLine = (h, rate) => Math.round(rNum(h) * rNum(rate) * 100) / 100
+const rT = (v) => (v ? new Date(v).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: TZ }) : '—')
+const rPtFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const rParts = (d) => { const o = {}; rPtFmt.formatToParts(new Date(d)).forEach((x) => { o[x.type] = x.value }); return o }
+const rDate = (d) => { const o = rParts(d); return `${o.year}-${o.month}-${o.day}` }
+const rToISO = (date, time) => {
+  const [y, m, d] = date.split('-').map(Number)
+  const [hh, mm] = time.split(':').map(Number)
+  const target = Date.UTC(y, m - 1, d, hh, mm)
+  let guess = target
+  for (let i = 0; i < 2; i++) {
+    const o = rParts(guess)
+    guess += target - Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute)
+  }
+  return new Date(guess).toISOString()
+}
+const rNextDay = (d) => { const x = new Date(d + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10) }
+const rWeekKey = (iso) => { const x = new Date(rDate(iso) + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() - x.getUTCDay()); return x.toISOString().slice(0, 10) }
+const rWeeksIn = (a, b) => Math.max(1, Math.ceil(((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 86400000 + 1) / 7))
+const rStatus = (v) => (!v.clock_out_at ? 'In progress' : v.billed ? 'Billed' : v.verified ? 'Verified' : 'Pending')
+const rGps = (v) => (v.location_ok === true ? 'On site' : v.location_ok === false ? 'Mismatch' : 'No check')
+const rCap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '')
+const rGroup = (list, fn) => { const m = new Map(); list.forEach((x) => { const k = fn(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x) }); return m }
+
+async function rAll(make) {
+  const out = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await make().range(from, from + 999)
+    if (error) throw error
+    out.push(...(data || []))
+    if (!data || data.length < 1000) break
+  }
+  return out
+}
+
+function rTot(list) {
+  const done = list.filter((v) => v.clock_out_at)
+  const t = { visits: done.length, open: list.length - done.length, hours: 0, bill: 0, pay: 0, miles: 0, pending: 0, verified: 0, billed: 0, mismatch: 0 }
+  done.forEach((v) => {
+    const h = rNum(v.worked_hours)
+    t.hours += h; t.bill += rLine(h, v.bill_rate); t.pay += rLine(h, v.pay_rate); t.miles += rNum(v.mi)
+    if (v.billed) t.billed++; else if (v.verified) t.verified++; else t.pending++
+    if (v.location_ok === false) t.mismatch++
+  })
+  return t
+}
+function rShiftStats(list) {
+  const live = list.filter((s) => s.status !== 'cancelled')
+  return {
+    total: list.length,
+    completed: list.filter((s) => s.status === 'completed').length,
+    missed: list.filter((s) => s.status === 'missed').length,
+    cancelled: list.filter((s) => s.status === 'cancelled').length,
+    open: live.filter((s) => !s.caregiver_id).length,
+    hours: live.reduce((a, s) => a + (new Date(s.ends_at) - new Date(s.starts_at)) / 3600000, 0),
+  }
+}
+
+async function rFetch({ type, id, start, end }) {
+  const startISO = rToISO(start, '00:00')
+  const endISO = rToISO(rNextDay(end), '00:00')
+  const [clients, caregivers, shifts, ledger, invoices] = await Promise.all([
+    rAll(() => supabase.from('clients').select('id,first_name,last_name,address,city,state,zip,phone,billing_email,authorized_hours_per_week,bill_rate,is_active').order('last_name')),
+    rAll(() => supabase.from('caregivers').select('id,first_name,last_name,hourly_rate,max_hours_per_week,is_active').order('last_name')),
+    rAll(() => {
+      let q = supabase.from('shifts').select('id,client_id,caregiver_id,starts_at,ends_at,status,service_type').gte('starts_at', startISO).lt('starts_at', endISO).order('starts_at')
+      if (type === 'client') q = q.eq('client_id', id)
+      if (type === 'caregiver') q = q.eq('caregiver_id', id)
+      return q
+    }),
+    rAll(() => {
+      let q = supabase.from('v_visit_ledger').select('*').gte('clock_in_at', startISO).lt('clock_in_at', endISO).order('clock_in_at')
+      if (type === 'client') q = q.eq('client_id', id)
+      return q
+    }),
+    type === 'caregiver' ? Promise.resolve([]) : rAll(() => {
+      let q = supabase.from('invoices').select('id,invoice_number,client_id,period_start,period_end,total,status,created_at').gte('period_end', start).lte('period_start', end).order('created_at')
+      if (type === 'client') q = q.eq('client_id', id)
+      return q
+    }),
+  ])
+  const cMap = new Map(clients.map((c) => [c.id, c]))
+  const gMap = new Map(caregivers.map((c) => [c.id, c]))
+  const cl = type === 'client' ? cMap.get(id) : null
+  const cg = type === 'caregiver' ? gMap.get(id) : null
+  if (type === 'client' && !cl) throw new Error('Client not found.')
+  if (type === 'caregiver' && !cg) throw new Error('Caregiver not found.')
+  let visits = ledger
+  if (type === 'caregiver') {
+    const key = rKey(rName(cg))
+    visits = ledger.filter((v) => (v.caregiver_id != null ? v.caregiver_id === id : rKey(v.caregiver_name) === key))
+  }
+  const miles = {}
+  try {
+    const vs = await rAll(() => supabase.from('visits').select('id,mileage_miles').gte('clock_in_at', startISO).lt('clock_in_at', endISO))
+    vs.forEach((v) => { miles[v.id] = rNum(v.mileage_miles) })
+  } catch (e) { console.warn('Mileage unavailable', e) }
+  visits.forEach((v) => { v.mi = rNum(miles[v.visit_id]) })
+  const notes = new Map()
+  if (type === 'client') {
+    try {
+      const ids = visits.map((v) => v.visit_id)
+      for (let i = 0; i < ids.length; i += 80) {
+        const { data } = await supabase.from('visit_notes').select('visit_id,body,created_at').in('visit_id', ids.slice(i, i + 80)).order('created_at')
+        ;(data || []).forEach((n) => { if (!notes.has(n.visit_id)) notes.set(n.visit_id, []); notes.get(n.visit_id).push(n.body) })
+      }
+    } catch (e) { console.warn('Notes unavailable', e) }
+  }
+  return { type, id, start, end, clients, caregivers, shifts, visits, invoices, notes, cMap, gMap, cl, cg }
+}
+
+/* ---- drawing helpers ---- */
+const R_HEAD = { fillColor: NAVY, textColor: 255, fontSize: 8.5 }
+const rRoom = (S, y, need) => { if (y + need > 262) { S.doc.addPage(); S.ensure(); return 42 } return y }
+const rTbl = (S, o) => {
+  autoTable(S.doc, {
+    margin: { top: 38, left: 14, right: 14, bottom: 18 },
+    didDrawPage: S.ensure, headStyles: R_HEAD, bodyStyles: { fontSize: 8 },
+    footStyles: { fillColor: [232, 238, 246], textColor: 20, fontStyle: 'bold', fontSize: 8 },
+    alternateRowStyles: { fillColor: [244, 247, 251] }, ...o,
+  })
+  return S.doc.lastAutoTable.finalY + 6
+}
+const rH = (S, text, y) => {
+  y = rRoom(S, y, 28)
+  const W = S.doc.internal.pageSize.getWidth()
+  S.doc.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(12).text(text, 14, y)
+  S.doc.setDrawColor(...GOLD).setLineWidth(0.5).line(14, y + 1.8, W - 14, y + 1.8)
+  return y + 7
+}
+function rTitle(S, title, subs) {
+  const d = S.doc
+  d.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(18)
+  const tl = d.splitTextToSize(title, 186)
+  d.text(tl, 14, 44)
+  let y = 44 + tl.length * 7
+  d.setTextColor(...GREY).setFont('helvetica', 'normal').setFontSize(9.5)
+  subs.forEach((t) => { const l = d.splitTextToSize(t, 186); d.text(l, 14, y); y += l.length * 4.6 })
+  return y + 5
+}
+function rKV(S, y, pairs) {
+  const rows = []
+  for (let i = 0; i < pairs.length; i += 2) {
+    rows.push([pairs[i][0], String(pairs[i][1]), pairs[i + 1] ? pairs[i + 1][0] : '', pairs[i + 1] ? String(pairs[i + 1][1]) : ''])
+  }
+  return rTbl(S, {
+    startY: y, body: rows, theme: 'grid', bodyStyles: { fontSize: 9 }, alternateRowStyles: {},
+    columnStyles: {
+      0: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 1: { halign: 'right', cellWidth: 40 },
+      2: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 3: { halign: 'right', cellWidth: 40 },
+    },
+  })
+}
+const rRight = (idx) => Object.fromEntries(idx.map((i) => [i, { halign: 'right' }]))
+
+function rVisitTable(S, y, list, mode) {
+  if (!list.length) {
+    S.doc.setFont('helvetica', 'italic').setFontSize(9).setTextColor(...GREY).text('No visits in this period.', 14, y + 2)
+    return y + 10
+  }
+  const T = rTot(list)
+  const done = (v) => !!v.clock_out_at
+  const cfg = {
+    full: {
+      head: ['Date', 'Caregiver', 'In', 'Out', 'Hours', 'Amount', 'GPS', 'Status'], right: [4, 5],
+      row: (v) => [dStamp(v.clock_in_at), rNorm(v.caregiver_name), rT(v.clock_in_at), rT(v.clock_out_at), done(v) ? rHrs(v.worked_hours) : '—', done(v) ? money(rLine(v.worked_hours, v.bill_rate)) : '—', rGps(v), rStatus(v)],
+      foot: ['', '', '', 'Total', rHrs(T.hours), money(T.bill), '', ''],
+    },
+    client: {
+      head: ['Date', 'Caregiver', 'In', 'Out', 'Hours', 'Bill rate', 'Amount', 'Miles', 'GPS', 'Status'], right: [4, 5, 6, 7],
+      row: (v) => [dStamp(v.clock_in_at), rNorm(v.caregiver_name), rT(v.clock_in_at), rT(v.clock_out_at), done(v) ? rHrs(v.worked_hours) : '—', money(v.bill_rate), done(v) ? money(rLine(v.worked_hours, v.bill_rate)) : '—', v.mi ? v.mi.toFixed(1) : '—', rGps(v), rStatus(v)],
+      foot: ['', '', '', 'Total', rHrs(T.hours), '', money(T.bill), T.miles.toFixed(1), '', ''],
+    },
+    caregiver: {
+      head: ['Date', 'Client', 'In', 'Out', 'Hours', 'Pay rate', 'Pay', 'Miles', 'GPS', 'Status'], right: [4, 5, 6, 7],
+      row: (v) => [dStamp(v.clock_in_at), rNorm(v.client_name), rT(v.clock_in_at), rT(v.clock_out_at), done(v) ? rHrs(v.worked_hours) : '—', money(v.pay_rate), done(v) ? money(rLine(v.worked_hours, v.pay_rate)) : '—', v.mi ? v.mi.toFixed(1) : '—', rGps(v), rStatus(v)],
+      foot: ['', '', '', 'Total', rHrs(T.hours), '', money(T.pay), T.miles.toFixed(1), '', ''],
+    },
+  }[mode]
+  return rTbl(S, { startY: y, head: [cfg.head], body: list.map(cfg.row), foot: [cfg.foot], columnStyles: rRight(cfg.right) })
+}
+
+function rShiftIssues(S, y, D) {
+  const rows = D.shifts.filter((s) => s.status === 'missed' || s.status === 'cancelled')
+  if (!rows.length) return y
+  y = rH(S, 'Missed and cancelled shifts', y)
+  return rTbl(S, {
+    startY: y, head: [['Date', 'Client', 'Caregiver', 'Scheduled', 'Status']],
+    body: rows.map((s) => [dStamp(s.starts_at), rName(D.cMap.get(s.client_id)) || '—', s.caregiver_id ? (rName(D.gMap.get(s.caregiver_id)) || '—') : 'Unassigned', `${rT(s.starts_at)} - ${rT(s.ends_at)}`, rCap(s.status)]),
+  })
+}
+function rWeekly(S, y, done, limit, limitLabel, D) {
+  const m = {}
+  done.forEach((v) => { const k = rWeekKey(v.clock_in_at); m[k] = (m[k] || 0) + rNum(v.worked_hours) })
+  const weeks = Object.entries(m).sort()
+  if (!weeks.length) return y
+  y = rH(S, 'Weekly hours', y)
+  return rTbl(S, {
+    startY: y, head: [['Week of (Sunday)', 'Hours worked', limitLabel, 'Difference']],
+    body: weeks.map(([k, h]) => {
+      const lim = rNum(limit)
+      const diff = lim ? h - lim : null
+      return [dDate(k), rHrs(h), lim ? rHrs(lim) : '—', diff == null ? '—' : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}`]
+    }),
+    columnStyles: rRight([1, 2, 3]),
+  })
+}
+
+/* ---- FULL AGENCY REPORT ---- */
+function rBuildFull(S, D) {
+  const done = D.visits.filter((v) => v.clock_out_at)
+  const T = rTot(D.visits), SS = rShiftStats(D.shifts)
+  const invTotal = D.invoices.reduce((s, i) => s + rNum(i.total), 0)
+  let y = rTitle(S, 'Full Agency Report', [`Period: ${dDate(D.start)} to ${dDate(D.end)}`, `Generated: ${dStamp(new Date().toISOString())}   |   All clients and all caregivers`])
+  y = rH(S, 'Overview', y)
+  y = rKV(S, y, [
+    ['Clients served', new Set(done.map((v) => v.client_id)).size], ['Caregivers worked', new Set(done.map((v) => rKey(v.caregiver_name))).size],
+    ['Shifts scheduled', SS.total], ['Shifts completed', SS.completed],
+    ['Shifts missed', SS.missed], ['Shifts cancelled', SS.cancelled],
+    ['Unassigned shifts', SS.open], ['Scheduled hours', rHrs(SS.hours)],
+    ['Visits completed', T.visits], ['Hours worked', rHrs(T.hours)],
+    ['Billable revenue', money(T.bill)], ['Caregiver payroll', money(T.pay)],
+    ['Gross margin', money(T.bill - T.pay)], ['Margin %', T.bill ? ((T.bill - T.pay) / T.bill * 100).toFixed(1) + '%' : '—'],
+    ['Invoices in period', D.invoices.length], ['Total invoiced', money(invTotal)],
+    ['Awaiting verification', T.pending], ['Still clocked in', T.open],
+    ['GPS mismatches', T.mismatch], ['Mileage recorded (mi)', T.miles.toFixed(1)],
+  ])
+
+  // Clients summary
+  const clientRows = [...rGroup(D.visits, (v) => v.client_id).entries()].map(([cid, list]) => ({
+    cid, list, t: rTot(list), name: rName(D.cMap.get(cid)) || rNorm(list[0].client_name),
+    inv: D.invoices.filter((i) => i.client_id === cid).reduce((s, i) => s + rNum(i.total), 0),
+  })).sort((a, b) => a.name.localeCompare(b.name))
+  y = rH(S, 'Clients summary', y)
+  y = rTbl(S, {
+    startY: y, head: [['Client', 'Visits', 'Hours', 'Billable', 'Caregiver pay', 'Invoiced', 'Pending']],
+    body: clientRows.map((c) => [c.name, c.t.visits, rHrs(c.t.hours), money(c.t.bill), money(c.t.pay), money(c.inv), c.t.pending]),
+    foot: [['Total', T.visits, rHrs(T.hours), money(T.bill), money(T.pay), money(invTotal), T.pending]],
+    columnStyles: rRight([1, 2, 3, 4, 5, 6]),
+  })
+
+  // Caregiver stats
+  const keyMap = new Map()
+  D.caregivers.forEach((g) => keyMap.set(rKey(rName(g)), { id: g.id, name: rName(g) }))
+  D.visits.forEach((v) => { const k = rKey(v.caregiver_name); if (k && !keyMap.has(k)) keyMap.set(k, { id: v.caregiver_id || null, name: rNorm(v.caregiver_name) }) })
+  const cgRows = [...keyMap.entries()].map(([k, g]) => {
+    const vs = D.visits.filter((v) => rKey(v.caregiver_name) === k)
+    const ss = g.id ? D.shifts.filter((s) => s.caregiver_id === g.id) : []
+    return { name: g.name, t: rTot(vs), s: rShiftStats(ss), vs, ss }
+  }).filter((r) => r.vs.length || r.s.total).sort((a, b) => a.name.localeCompare(b.name))
+  y = rH(S, 'Caregiver statistics', y)
+  y = rTbl(S, {
+    startY: y, head: [['Caregiver', 'Shifts', 'Done', 'Missed', 'Visits', 'Hours', 'Pay', 'Miles', 'GPS flags', 'Pending']],
+    body: cgRows.map((r) => [r.name, r.s.total, r.s.completed, r.s.missed, r.t.visits, rHrs(r.t.hours), money(r.t.pay), r.t.miles.toFixed(1), r.t.mismatch, r.t.pending]),
+    foot: [['Total', SS.total, SS.completed, SS.missed, T.visits, rHrs(T.hours), money(T.pay), T.miles.toFixed(1), T.mismatch, T.pending]],
+    columnStyles: rRight([1, 2, 3, 4, 5, 6, 7, 8, 9]),
+  })
+
+  // Invoice register
+  if (D.invoices.length) {
+    y = rH(S, 'Invoice register', y)
+    y = rTbl(S, {
+      startY: y, head: [['Invoice', 'Client', 'Period', 'Status', 'Total']],
+      body: D.invoices.map((i) => [i.invoice_number, rName(D.cMap.get(i.client_id)) || '—', `${dDate(i.period_start)} - ${dDate(i.period_end)}`, rCap(i.status), money(i.total)]),
+      foot: [['', '', '', 'Total', money(invTotal)]], columnStyles: rRight([4]),
+    })
+  }
+
+  // Needs attention
+  const issues = []
+  D.visits.forEach((v) => {
+    const base = [dStamp(v.clock_in_at), rNorm(v.client_name), rNorm(v.caregiver_name)]
+    if (!v.clock_out_at) issues.push([...base, 'Still clocked in / no clock-out'])
+    else if (!v.verified) issues.push([...base, 'Awaiting verification'])
+    if (v.clock_out_at && v.location_ok === false) issues.push([...base, 'GPS mismatch'])
+  })
+  D.shifts.filter((s) => s.status === 'missed').forEach((s) => {
+    issues.push([dStamp(s.starts_at), rName(D.cMap.get(s.client_id)) || '—', s.caregiver_id ? (rName(D.gMap.get(s.caregiver_id)) || '—') : 'Unassigned', 'Missed shift'])
+  })
+  if (issues.length) {
+    y = rH(S, 'Needs attention', y)
+    y = rTbl(S, { startY: y, head: [['Date', 'Client', 'Caregiver', 'Issue']], body: issues })
+  }
+
+  // Per-client detail
+  if (clientRows.length) {
+    S.doc.addPage(); S.ensure(); y = 42
+    y = rH(S, 'Client detail', y)
+    clientRows.forEach((c) => {
+      y = rRoom(S, y, 55)
+      y = rH(S, c.name, y)
+      const cgs = [...new Set(c.list.map((v) => rNorm(v.caregiver_name)))].filter(Boolean)
+      S.doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(60, 60, 60)
+      const lines = S.doc.splitTextToSize(`${c.t.visits} visits  |  ${rHrs(c.t.hours)} hours  |  ${money(c.t.bill)} billable  |  Caregivers: ${cgs.join(', ') || '—'}`, 186)
+      S.doc.text(lines, 14, y); y += lines.length * 4.4 + 2
+      y = rVisitTable(S, y, c.list, 'full')
+    })
+  }
+}
+
+/* ---- SPECIFIC CLIENT REPORT ---- */
+function rBuildClient(S, D) {
+  const c = D.cl, name = rName(c)
+  const done = D.visits.filter((v) => v.clock_out_at)
+  const T = rTot(D.visits), SS = rShiftStats(D.shifts)
+  const invTotal = D.invoices.reduce((s, i) => s + rNum(i.total), 0)
+  const weeks = rWeeksIn(D.start, D.end)
+  const addr = [c.address, [c.city, c.state].filter(Boolean).join(', '), c.zip].filter(Boolean).join(' ')
+  const unInv = done.filter((v) => v.verified && !v.billed).reduce((s, v) => s + rLine(v.worked_hours, v.bill_rate), 0)
+  let y = rTitle(S, `Client Report: ${name}`, [
+    `Period: ${dDate(D.start)} to ${dDate(D.end)}`,
+    `Address: ${addr || '—'}   |   Phone: ${c.phone || '—'}${c.billing_email ? `   |   Billing email: ${c.billing_email}` : ''}`,
+    `Generated: ${dStamp(new Date().toISOString())}`,
+  ])
+  y = rH(S, 'Overview', y)
+  y = rKV(S, y, [
+    ['Authorized hours / week', c.authorized_hours_per_week != null ? rHrs(c.authorized_hours_per_week) : 'Not set'], ['Average hours / week', rHrs(T.hours / weeks)],
+    ['Shifts scheduled', SS.total], ['Shifts completed', SS.completed],
+    ['Shifts missed', SS.missed], ['Shifts cancelled', SS.cancelled],
+    ['Unassigned shifts', SS.open], ['Visits completed', T.visits],
+    ['Hours worked', rHrs(T.hours)], ['Bill rate', c.bill_rate != null ? money(c.bill_rate) + '/h' : '—'],
+    ['Billable amount', money(T.bill)], ['Total invoiced', money(invTotal)],
+    ['Verified, not yet invoiced', money(unInv)], ['Awaiting verification', T.pending],
+    ['GPS mismatches', T.mismatch], ['Mileage recorded (mi)', T.miles.toFixed(1)],
+  ])
+
+  const byCg = [...rGroup(done, (v) => rKey(v.caregiver_name)).entries()].map(([k, l]) => {
+    const sorted = [...l].sort((a, b) => new Date(a.clock_in_at) - new Date(b.clock_in_at))
+    return { name: rNorm(l[0].caregiver_name), t: rTot(l), first: sorted[0].clock_in_at, last: sorted[sorted.length - 1].clock_in_at }
+  }).sort((a, b) => a.name.localeCompare(b.name))
+  if (byCg.length) {
+    y = rH(S, 'Caregivers who served this client', y)
+    y = rTbl(S, {
+      startY: y, head: [['Caregiver', 'Visits', 'Hours', 'Billable', 'First visit', 'Last visit']],
+      body: byCg.map((g) => [g.name, g.t.visits, rHrs(g.t.hours), money(g.t.bill), dStamp(g.first), dStamp(g.last)]),
+      columnStyles: rRight([1, 2, 3]),
+    })
+  }
+  y = rWeekly(S, y, done, c.authorized_hours_per_week, 'Authorized', D)
+
+  if (D.invoices.length) {
+    y = rH(S, 'Invoices', y)
+    y = rTbl(S, {
+      startY: y, head: [['Invoice', 'Period', 'Status', 'Issued', 'Total']],
+      body: D.invoices.map((i) => [i.invoice_number, `${dDate(i.period_start)} - ${dDate(i.period_end)}`, rCap(i.status), dStamp(i.created_at), money(i.total)]),
+      foot: [['', '', '', 'Total', money(invTotal)]], columnStyles: rRight([4]),
+    })
+  }
+
+  y = rH(S, 'Visit detail', y)
+  y = rVisitTable(S, y, D.visits, 'client')
+  y = rShiftIssues(S, y, D)
+
+  const noteRows = []
+  D.visits.forEach((v) => (D.notes.get(v.visit_id) || []).forEach((n) => noteRows.push([dStamp(v.clock_in_at), rNorm(v.caregiver_name), n])))
+  if (noteRows.length) {
+    y = rH(S, 'Visit notes', y)
+    y = rTbl(S, { startY: y, head: [['Date', 'Caregiver', 'Note']], body: noteRows, columnStyles: { 0: { cellWidth: 24 }, 1: { cellWidth: 36 } } })
+  }
+}
+
+/* ---- SPECIFIC CAREGIVER REPORT ---- */
+function rBuildCaregiver(S, D) {
+  const g = D.cg, name = rName(g)
+  const done = D.visits.filter((v) => v.clock_out_at)
+  const T = rTot(D.visits), SS = rShiftStats(D.shifts)
+  const weeks = rWeeksIn(D.start, D.end)
+  let y = rTitle(S, `Caregiver Report: ${name}`, [
+    `Period: ${dDate(D.start)} to ${dDate(D.end)}`,
+    `Hourly pay rate: ${g.hourly_rate != null ? money(g.hourly_rate) : '—'}   |   Max hours / week: ${g.max_hours_per_week != null ? rHrs(g.max_hours_per_week) : 'Not set'}`,
+    `Generated: ${dStamp(new Date().toISOString())}`,
+  ])
+  y = rH(S, 'Overview', y)
+  y = rKV(S, y, [
+    ['Shifts scheduled', SS.total], ['Shifts completed', SS.completed],
+    ['Shifts missed', SS.missed], ['Shifts cancelled', SS.cancelled],
+    ['Visits completed', T.visits], ['Hours worked', rHrs(T.hours)],
+    ['Gross pay', money(T.pay)], ['Average hours / week', rHrs(T.hours / weeks)],
+    ['Clients served', new Set(done.map((v) => v.client_id)).size], ['Mileage recorded (mi)', T.miles.toFixed(1)],
+    ['GPS mismatches', T.mismatch], ['Awaiting verification', T.pending],
+    ['Verified, not yet invoiced', done.filter((v) => v.verified && !v.billed).length], ['Still clocked in', T.open],
+  ])
+
+  const byClient = [...rGroup(done, (v) => v.client_id).entries()].map(([cid, l]) => ({
+    name: rName(D.cMap.get(cid)) || rNorm(l[0].client_name), t: rTot(l),
+  })).sort((a, b) => a.name.localeCompare(b.name))
+  if (byClient.length) {
+    y = rH(S, 'Clients served', y)
+    y = rTbl(S, {
+      startY: y, head: [['Client', 'Visits', 'Hours', 'Pay', 'Miles']],
+      body: byClient.map((r) => [r.name, r.t.visits, rHrs(r.t.hours), money(r.t.pay), r.t.miles.toFixed(1)]),
+      foot: [['Total', T.visits, rHrs(T.hours), money(T.pay), T.miles.toFixed(1)]], columnStyles: rRight([1, 2, 3, 4]),
+    })
+  }
+  y = rWeekly(S, y, done, g.max_hours_per_week, 'Max / week', D)
+  y = rH(S, 'Visit detail', y)
+  y = rVisitTable(S, y, D.visits, 'caregiver')
+  y = rShiftIssues(S, y, D)
+}
+
+/* ---- Entry point used by the Download report dialog ---- */
+export async function generateReportPdf({ type, id, start, end }) {
+  if (!start || !end || start > end) throw new Error('Choose a valid date range (start must not be after end).')
+  if ((type === 'client' || type === 'caregiver') && !id) throw new Error(`Choose a ${type} first.`)
+  const [logo, D] = await Promise.all([loadLogo(), rFetch({ type, id, start, end })])
+  const doc = new jsPDF({ unit: 'mm', format: 'letter' })
+  const drawn = new Set()
+  const agency = { phone: AGENCY.phone, email: AGENCY.email }
+  const S = {
+    doc,
+    ensure: () => {
+      const n = doc.internal.getCurrentPageInfo().pageNumber
+      if (!drawn.has(n)) { header(doc, logo, agency); drawn.add(n) }
+    },
+  }
+  S.ensure()
+  let label, tag, who = ''
+  if (type === 'full') { rBuildFull(S, D); label = 'Full Agency Report'; tag = 'FullReport' }
+  else if (type === 'client') { rBuildClient(S, D); who = rSlug(rName(D.cl)); label = `Client Report - ${rName(D.cl)}`; tag = 'ClientReport' }
+  else { rBuildCaregiver(S, D); who = rSlug(rName(D.cg)); label = `Caregiver Report - ${rName(D.cg)}`; tag = 'CaregiverReport' }
+  footer(doc, `${AGENCY.name}  |  ${label}  |  ${start} to ${end}  |  Confidential`)
+  doc.setProperties({ title: label })
+  doc.save(`GY-${tag}${who ? '_' + who : ''}_${start}_to_${end}_generated-${rDate(new Date())}.pdf`)
+}

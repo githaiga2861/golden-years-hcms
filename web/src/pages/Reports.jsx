@@ -1,4 +1,4 @@
-import { downloadReportPdf } from '../lib/pdf'
+import ReportDownloadButton from '../components/ReportDownload'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDate, fullName } from '../lib/format'
@@ -114,7 +114,7 @@ function SummaryReports() {
             <div className="card card-pad stat"><div className="label">Visits completed</div><div className="value">{stats.visitsCount}</div></div>
             <div className="card card-pad stat"><div className="label">Total hours</div><div className="value">{stats.totalHours.toFixed(1)}</div></div>
             <div className="card card-pad stat"><div className="label">Estimated payroll</div><div className="value">${stats.totalPayroll.toFixed(2)}</div></div>
-            <div className="card card-pad stat"><div className="label">&nbsp;</div><><button className="btn btn-outline" onClick={exportVisitsCsv}>Export visits CSV</button> <button className="btn btn-primary" style={{ marginTop: 6 }} onClick={() => downloadReportPdf(stats, range)}>Download PDF report</button></></div>
+            <div className="card card-pad stat"><div className="label">&nbsp;</div><><button className="btn btn-outline" onClick={exportVisitsCsv}>Export visits CSV</button> <ReportDownloadButton range={range} /></></div>
           </div>
 
           <h3 className="thread mt">Billing</h3>
