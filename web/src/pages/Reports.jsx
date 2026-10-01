@@ -52,7 +52,7 @@ function SummaryReports() {
     const endISO = new Date(range.end + 'T23:59:59').toISOString()
 
     const [shiftsRes, visitsRes, invoicesRes] = await Promise.all([
-      supabase.from('shifts').select('status').gte('starts_at', startISO).lte('starts_at', endISO),
+      supabase.from('v_shift_outcome').select('outcome').gte('starts_at', startISO).lte('starts_at', endISO),
       supabase.from('v_visit_ledger').select('*').gte('clock_in_at', startISO).lte('clock_in_at', endISO),
       supabase.from('invoices').select('total, created_at').gte('created_at', startISO).lte('created_at', endISO),
     ])
@@ -70,9 +70,10 @@ function SummaryReports() {
 
     setStats({
       shiftsTotal: shifts.length,
-      shiftsCompleted: shifts.filter((s) => s.status === 'completed').length,
-      shiftsMissed: shifts.filter((s) => s.status === 'missed').length,
-      shiftsCancelled: shifts.filter((s) => s.status === 'cancelled').length,
+      shiftsCompleted: shifts.filter((s) => s.outcome === 'completed').length,
+      shiftsMissed: shifts.filter((s) => s.outcome === 'missed').length,
+      shiftsCancelled: shifts.filter((s) => s.outcome === 'cancelled_caregiver').length,
+      shiftsUpcoming: shifts.filter((s) => s.outcome === 'upcoming' || s.outcome === 'in_progress').length,
       visitsCount: visits.length,
       totalHours, totalPayroll, totalBilled, invoiceCount: invoices.length,
       visits,
@@ -106,7 +107,8 @@ function SummaryReports() {
             <div className="card card-pad stat"><div className="label">Total shifts</div><div className="value">{stats.shiftsTotal}</div></div>
             <div className="card card-pad stat"><div className="label">Completed</div><div className="value">{stats.shiftsCompleted}</div></div>
             <div className="card card-pad stat"><div className="label">Missed</div><div className="value">{stats.shiftsMissed}</div></div>
-            <div className="card card-pad stat"><div className="label">Cancelled</div><div className="value">{stats.shiftsCancelled}</div></div>
+            <div className="card card-pad stat"><div className="label">Cancelled by caregiver</div><div className="value">{stats.shiftsCancelled}</div></div>
+            <div className="card card-pad stat"><div className="label">Upcoming / in progress</div><div className="value">{stats.shiftsUpcoming}</div></div>
           </div>
 
           <h3 className="thread mt">Payroll</h3>
