@@ -342,6 +342,10 @@ const rTbl = (S, o) => {
   autoTable(S.doc, {
     margin: { top: 38, left: 14, right: 14, bottom: 18 },
     didDrawPage: S.ensure, headStyles: R_HEAD, bodyStyles: { fontSize: 8 },
+    didParseCell: (data) => {
+      const cs = (o.columnStyles || {})[data.column.index]
+      if (cs && cs.halign && data.section !== 'body') data.cell.styles.halign = cs.halign
+    },
     footStyles: { fillColor: [232, 238, 246], textColor: 20, fontStyle: 'bold', fontSize: 8 },
     alternateRowStyles: { fillColor: [244, 247, 251] }, ...o,
   })
@@ -372,8 +376,8 @@ function rKV(S, y, pairs) {
   return rTbl(S, {
     startY: y, body: rows, theme: 'grid', bodyStyles: { fontSize: 9 }, alternateRowStyles: {},
     columnStyles: {
-      0: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 1: { halign: 'right', cellWidth: 40 },
-      2: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 3: { halign: 'right', cellWidth: 40 },
+      0: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 1: { halign: 'right', cellWidth: 43 },
+      2: { fontStyle: 'bold', fillColor: [232, 238, 246], cellWidth: 48 }, 3: { halign: 'right', cellWidth: 43 },
     },
   })
 }
