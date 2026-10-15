@@ -35,10 +35,14 @@ const val = (data, k) => (data && data[k] != null ? data[k] : '')
 function inline(html, data) {
   return String(html).replace(TOKEN, (_, k, label, w) => {
     const v = val(data, k)
+    if (w === 'bare') return v ? esc(v) : ''
     const width = w || '1.4in'
     return `<span class="ivl" style="display:inline-block;min-width:${width};border-bottom:0.7pt solid #5b6d82;padding:0 3pt;font-family:'Segoe Print','Bradley Hand',Inter,Arial,sans-serif;color:#0a2540">${v ? esc(v) : '&nbsp;'}</span>`
   })
 }
+
+// Fill {{key|Label|width}} blanks in any HTML (used by the policy manual body).
+export const fillTokens = (html, data = {}) => inline(html, data)
 
 const box = (on) => `<span class="sq">${on ? '✓' : ''}</span>`
 
@@ -188,6 +192,13 @@ export function fieldsOf(items) {
   })
   walk(items, true)
   if (cur.fields.some((f) => !f.heading)) sections.push(cur)
+  // Short stand-alone forms read better on one page: keep the parts as panels.
+  const count = sections.reduce((n, sec) => n + sec.fields.filter((f) => !f.heading).length, 0)
+  if (!grouped && sections.length > 1 && count < 24) {
+    const one = { title: sections[0].title === 'General' ? 'Form' : sections[0].title, fields: [] }
+    sections.forEach((sec, i) => { if (i) one.fields.push({ heading: sec.title }); one.fields.push(...sec.fields) })
+    sections.splice(0, sections.length, one)
+  }
   sections.forEach((sec) => {
     sec.fields = sec.fields.filter((f, i, arr) => !f.heading || (arr[i + 1] && !arr[i + 1].heading))
   })

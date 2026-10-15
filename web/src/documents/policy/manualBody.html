@@ -1,6 +1,8 @@
 <!--
   Golden Years Home Health Supported Living LLC — Policy & Procedure Manual (body).
   Edit the text here, then run:  node documents-src/build.mjs
+  {{key|Label|width}} marks a fill-in blank (filled from the Documentation page);
+  <!--FORM:x--> inserts a fillable worksheet from web/src/documents/forms/policyWorksheets.js.
   The cover page, table of contents (with page numbers), page header/footer,
   logo and agency address are added automatically by the build.
   h1 = WAC part (new page) · h2 = policy (class "brk" starts a new page) · h3/h4 = sub-sections.
@@ -8,19 +10,8 @@
 -->
 <!-- src p6 -->
 <h1 id="h1" class="part" data-toc="1">REVIEW OF POLICY MANUALS</h1>
-<table class="grid">
-<tr><th colspan="2">All Policy Manuals are reviewed on a yearly basis.</th></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-<tr><td>Reviewed:</td><td>Date:</td></tr>
-</table>
+<p>All policy manuals are reviewed on a yearly basis.</p>
+<!--FORM:review-->
 <!-- src p7 -->
 <h1 id="h2" class="part" data-toc="1">APPLICABILITY, SCOPE and PURPOSE of HOME HEALTH AGENCIES</h1>
 <h3 id="h3" class="">WAC 246-335-300 through 246-335-355 / WAC 246-335-505 through WAC</h3>
@@ -35,7 +26,7 @@
 <!-- src p8 -->
 <p><b>Golden Years Home Health Supported Living LLC </b>provides staff developmental opportunities and programs, including orientation and programs concerning current practices in nursing and allied health care.</p>
 <p><b>Golden Years Home Health Supported Living LLC </b>provides current and accurate personnel records, including verification of current license/certification and health records.</p>
-<p>The Agency maintains open communication with patients, employees, and Authorizing Practitioners via frequent contact in order to achieve quality and cost-effective care. The counties that we serve are <b>King &amp; Pierce</b> Our hours of operation are <b>are 9:00 am to 5:00 pm, Monday through Friday</b></p>
+<p>The Agency maintains open communication with patients, employees, and Authorizing Practitioners via frequent contact in order to achieve quality and cost-effective care. The counties that we serve are {{mg_counties|Counties served|2.2in}}. Our hours of operation are {{mg_hours|Hours of operation|2.8in}}.</p>
 <p>The Agency provides clinical services (either through its own staff or through contract) from Registered Nurses (“RNs”), Licensed Practical Nurses (“LPNs”), Home Health Aides (“HHAs”) Therapy services will be provided by Physical Therapists (“PTs”), Occupational Therapists (“OTs”), Speech Therapists (“SPs”), Respiratory Therapists (RT), Dietitian/Nutritionist and Medical Social Workers (“MSWs”) to the extent that the agency hires or contracts for such services. <b>Golden Years Home Health Supported Living LLC </b>adheres to standards set forth State, and Local regulations.</p>
 <p>The Agency has approved written vision and mission statements that contain the Agency's operating purpose, philosophy and operating ethics. The vision and mission statements are distributed to all employees, volunteers and members of the Agency's Governing Body. The mission may be amended only through proper approval by the Agency's governing authority.</p>
 <!-- src p9 -->
@@ -48,10 +39,10 @@
 <div class="li l0 o"><span class="mk">(1)</span><div class="tx">A description of the organizational structure.</div></div>
 </div>
 <h4 id="h9" class="">List of officers’ names</h4>
-<p><b>President</b>: Rose Mbote</p>
-<p><b>Administrator- Disaster Coordinator - Privacy Officer</b>: Eric Njoroge</p>
-<p><b>Alternate Administrator </b>- Eric Njoroge</p>
-<p><b>Director of clinical services- Alternate Administrator - Office Staff: </b>Rose Mbote</p>
+<p><b>President</b>: {{off_president|President|2.2in}}</p>
+<p><b>Administrator – Disaster Coordinator – Privacy Officer</b>: {{off_admin|Administrator / Disaster Coordinator / Privacy Officer|2.2in}}</p>
+<p><b>Alternate Administrator</b>: {{off_alt_admin|Alternate Administrator|2.2in}}</p>
+<p><b>Director of Clinical Services – Alternate Administrator – Office Staff</b>: {{off_docs|Director of Clinical Services|2.2in}}</p>
 <!-- src p10 -->
 <h2 id="h10" class="pol brk" data-toc="2">PERSONNEL JOB DESCRIPTIONS</h2>
 <p class="wac">WAC 246-335-525(2)</p>
@@ -116,7 +107,7 @@
 <tr><td class="n">4.</td><td>Ability to identify and evaluate personal strengths and weaknesses of self and others.</td></tr>
 <tr><td class="n">5.</td><td>Ability to supervise objectively without personal bias towards individuals.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd1_name|Chief Executive Officer — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd1_sig|Chief Executive Officer — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd1_date|Chief Executive Officer — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p12 -->
 <!-- src p13 -->
@@ -154,7 +145,7 @@
 <table class="grid">
 <tr><th colspan="2">3. Must have a criminal background check.</th></tr>
 <tr><td colspan="2">ACKNOWLEDGMENT</td></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd2_name|Chief Financial Officer — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd2_sig|Chief Financial Officer — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd2_date|Chief Financial Officer — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p15 -->
 <h2 id="h18" class="pol brk" data-toc="2">TITLE OF POSITION: DIRECTOR OF HUMAN RESOURCES</h2>
@@ -187,7 +178,7 @@
 <tr><td class="n">2.</td><td>Experience in interviewing and recruitment of qualified applicants is required.</td></tr>
 <tr><td class="n">3.</td><td>Strong leadership and excellent interpersonal relationship abilities are essential.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd3_name|Director Of Human Resources — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd3_sig|Director Of Human Resources — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd3_date|Director Of Human Resources — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p16 -->
 <h4 id="h20" class="">RISK OF EXPOSURE TO BLOODBORNE PATHOGENS - LIMITED</h4>
@@ -235,7 +226,7 @@
 <tr><td class="n">3.</td><td>Must have experience in developing, implementing and evaluating continuous quality improvement programs and activities.</td></tr>
 <tr><td class="n">4.</td><td>Must have the ability to demonstrate self-confidence and a positive attitude and maintain enthusiasm and commitment with respect to goal achievement.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd4_name|Quality Improvement Manager — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd4_sig|Quality Improvement Manager — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd4_date|Quality Improvement Manager — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p18 -->
 <!-- src p19 -->
@@ -296,7 +287,7 @@
 <tr><td class="n">1.</td><td>A professional with training and experience in health services with at least two (2) years of supervisory or administrative experience in home healthcare or related health programs and the experience, knowledge and ability to effectively administer the program is preferred.</td></tr>
 <tr><td class="n">2.</td><td>Must have a criminal background check.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd5_name|Administrator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd5_sig|Administrator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd5_date|Administrator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p20 -->
 <!-- src p21 -->
@@ -356,7 +347,7 @@
 <tr><td class="n">1.</td><td>A professional with training and experience in health services with at least two (2) years of supervisory or administrative experience in home healthcare or related health program and the experience, knowledge and ability to effectively administer the program is preferred.</td></tr>
 <tr><td class="n">2.</td><td>Must have a criminal background check.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd6_name|Alternate Administrator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd6_sig|Alternate Administrator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd6_date|Alternate Administrator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p22 -->
 <!-- src p23 -->
@@ -418,7 +409,7 @@
 <tr><td colspan="2">Must have current CPR certification.</td></tr>
 <tr><td colspan="2">Must have a criminal history background clearance.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd7_name|Director Of Clinical Services — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd7_sig|Director Of Clinical Services — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd7_date|Director Of Clinical Services — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p24 -->
 <!-- src p25 -->
@@ -480,7 +471,7 @@
 <tr><td colspan="2">Must have current CPR certification.</td></tr>
 <tr><td colspan="2">Must have a criminal history background clearance.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd8_name|Alternate Director Of Clinical Services — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd8_sig|Alternate Director Of Clinical Services — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd8_date|Alternate Director Of Clinical Services — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p27 -->
 <!-- src p28 -->
@@ -569,7 +560,7 @@
 <tr><td class="n">6.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">7.</td><td>Must have a current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd9_name|Registered Nurse — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd9_sig|Registered Nurse — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd9_date|Registered Nurse — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p30 -->
 <!-- src p31 -->
@@ -610,7 +601,7 @@
 <tr><td class="n">3.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">4.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd10_name|Pediatric Registered Nurse — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd10_sig|Pediatric Registered Nurse — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd10_date|Pediatric Registered Nurse — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p34 -->
 <!-- src p35 -->
@@ -654,7 +645,7 @@
 <tr><td colspan="2">Must have a criminal background clearance.</td></tr>
 <tr><td colspan="2">Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd11_name|Licensed Practical Nurse — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd11_sig|Licensed Practical Nurse — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd11_date|Licensed Practical Nurse — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p36 -->
 <!-- src p37 -->
@@ -696,7 +687,7 @@
 <tr><td class="n">3.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">4.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd12_name|Medical Social Worker — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd12_sig|Medical Social Worker — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd12_date|Medical Social Worker — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p38 -->
 <!-- src p39 -->
@@ -747,7 +738,7 @@
 <tr><td class="n">3.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">4.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd13_name|Registered Physical Therapist — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd13_sig|Registered Physical Therapist — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd13_date|Registered Physical Therapist — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p40 -->
 <!-- src p41 -->
@@ -792,7 +783,7 @@
 <tr><td class="n">2.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">3.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd14_name|Physical Therapy Assistant — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd14_sig|Physical Therapy Assistant — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd14_date|Physical Therapy Assistant — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p42 -->
 <!-- src p43 -->
@@ -842,7 +833,7 @@
 <tr><td class="n">3.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">4.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd15_name|Occupational Therapist — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd15_sig|Occupational Therapist — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd15_date|Occupational Therapist — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p44 -->
 <!-- src p45 -->
@@ -885,7 +876,7 @@
 <tr><td class="n">2.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">3.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd16_name|Occupational Therapy Assistant — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd16_sig|Occupational Therapy Assistant — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd16_date|Occupational Therapy Assistant — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p47 -->
 <!-- src p48 -->
@@ -934,7 +925,7 @@
 <tr><td class="n">3.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><td class="n">4.</td><td>Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd17_name|Speech Therapist — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd17_sig|Speech Therapist — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd17_date|Speech Therapist — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p49 -->
 <!-- src p50 -->
@@ -979,7 +970,7 @@
 <tr><td colspan="2">Must have a criminal background clearance.</td></tr>
 <tr><td colspan="2">Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd18_name|Nutritionist/Dietitian — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd18_sig|Nutritionist/Dietitian — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd18_date|Nutritionist/Dietitian — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p51 -->
 <!-- src p52 -->
@@ -1024,7 +1015,7 @@
 <tr><td colspan="2">Must have a criminal background clearance.</td></tr>
 <tr><td colspan="2">Must have current CPR certification.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd19_name|Respiratory Therapist — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd19_sig|Respiratory Therapist — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd19_date|Respiratory Therapist — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p53 -->
 <!-- src p54 -->
@@ -1061,7 +1052,7 @@
 <tr><td class="n">2.</td><td>Must have current CPR certification.</td></tr>
 <tr><td class="n">3.</td><td>Must have criminal background clearance.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd20_name|Home Health Aide — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd20_sig|Home Health Aide — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd20_date|Home Health Aide — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p55 -->
 <!-- src p56 -->
@@ -1102,7 +1093,7 @@
 <tr><td class="n">4.</td><td>Must possess light secretarial skill and have a polite telephone manner.</td></tr>
 <tr><td class="n">5.</td><td>Must have a criminal background clearance.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd21_name|Staffing Coordinator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd21_sig|Staffing Coordinator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd21_date|Staffing Coordinator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p57 -->
 <!-- src p58 -->
@@ -1142,7 +1133,7 @@
 <tr><td class="n">3.</td><td>Should be a skilled organizer able to manage office files, logbooks and staff schedules.</td></tr>
 <tr><td class="n">4.</td><td>Must possess light secretarial skill and have a polite telephone manner.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd22_name|Medical Records Manager — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd22_sig|Medical Records Manager — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd22_date|Medical Records Manager — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p59 -->
 <!-- src p60 -->
@@ -1179,7 +1170,7 @@
 <tr><td class="n">3.</td><td>Should be a skilled organizer able to manage office files, logbooks and staff schedules.</td></tr>
 <tr><td class="n">4.</td><td>Must possess light secretarial skill and have a polite telephone manner.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd23_name|Office Manager — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd23_sig|Office Manager — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd23_date|Office Manager — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p61 -->
 <!-- src p62 -->
@@ -1222,7 +1213,7 @@
 <tr><td class="n">3.</td><td>Should be a skilled organizer able to manage office files, logbooks and “T accounts”.</td></tr>
 <tr><td class="n">4.</td><td>Must possess light secretarial skill and have a polite telephone manner.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd24_name|Payroll/Billing/Receivables Manager — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd24_sig|Payroll/Billing/Receivables Manager — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd24_date|Payroll/Billing/Receivables Manager — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p63 -->
 <!-- src p64 -->
@@ -1260,7 +1251,7 @@
 <!-- src p65 -->
 <table class="grid">
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd25_name|Payroll/Billing/Receivables Clerk — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd25_sig|Payroll/Billing/Receivables Clerk — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd25_date|Payroll/Billing/Receivables Clerk — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p66 -->
 <h2 id="h86" class="pol brk" data-toc="2">TITLE OF POSITION: BUSINESS CLERK</h2>
@@ -1295,7 +1286,7 @@
 <!-- src p67 -->
 <table class="grid">
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd26_name|Business Clerk — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd26_sig|Business Clerk — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd26_date|Business Clerk — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p68 -->
 <h2 id="h89" class="pol brk" data-toc="2">TITLE OF POSITION: COORDINATOR</h2>
@@ -1336,7 +1327,7 @@
 <tr><td class="n">2.</td><td>A minimum of one-year experience as a Coordinator, preferably in a home health setting.</td></tr>
 <tr><td class="n">3.</td><td>A good working knowledge of home health care.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd27_name|Coordinator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd27_sig|Coordinator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd27_date|Coordinator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p69 -->
 <!-- src p70 -->
@@ -1374,7 +1365,7 @@
 <tr><td class="n">2.</td><td>Experience in a Home Health Care setting preferred.</td></tr>
 <tr><td class="n">3.</td><td>Must be computer literate and able maintain simple records in English.</td></tr>
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td colspan="2" style="padding-top:20pt;"><div style="display:flex;gap:12pt"><div style="flex:1">Employee Signature</div><div style="flex:1">Date</div></div></td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd28_name|Unlicensed Intake Coordinator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd28_sig|Unlicensed Intake Coordinator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd28_date|Unlicensed Intake Coordinator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p71 -->
 <!-- src p72 -->
@@ -1413,7 +1404,7 @@
 <!-- src p73 -->
 <table class="grid">
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd29_name|Community Liaison — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd29_sig|Community Liaison — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd29_date|Community Liaison — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p74 -->
 <h2 id="h98" class="pol brk" data-toc="2">TITLE OF POSITION: RECEPTIONIST</h2>
@@ -1449,7 +1440,7 @@
 <!-- src p75 -->
 <table class="grid">
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd30_name|Receptionist — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd30_sig|Receptionist — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd30_date|Receptionist — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p76 -->
 <h2 id="h101" class="pol brk" data-toc="2">TITLE OF POSITION: DATA ENTRY OPERATOR</h2>
@@ -1484,7 +1475,7 @@
 <!-- src p77 -->
 <table class="grid">
 <tr><th colspan="2">ACKNOWLEDGMENT</th></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd31_name|Data Entry Operator — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd31_sig|Data Entry Operator — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd31_date|Data Entry Operator — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p78 -->
 <h2 id="h104" class="pol brk" data-toc="2">TITLE OF POSITION: COURIER/CLERK</h2>
@@ -1518,7 +1509,7 @@
 <table class="grid">
 <tr><th colspan="2">3. Must possess typing and other clerical skills.</th></tr>
 <tr><td colspan="2">ACKNOWLEDGMENT</td></tr>
-<tr><td>Employee Signature</td><td>Date</td></tr>
+<tr><td colspan="2" style="padding:14pt 6pt 4pt"><div style="display:flex;gap:12pt;align-items:flex-end"><div style="flex:1.3">{{jd32_name|Courier/Clerk — employee name|100%}}<div class="small muted">Employee name (print)</div></div><div style="flex:1.3">{{jd32_sig|Courier/Clerk — employee signature|100%}}<div class="small muted">Employee signature</div></div><div style="flex:.8">{{jd32_date|Courier/Clerk — date|100%}}<div class="small muted">Date</div></div></div></td></tr>
 </table>
 <!-- src p80 -->
 <h2 id="h107" class="pol brk" data-toc="2">RESPONSIBILITIES OF CONTRACTORS AND VOLUNTEERS</h2>
@@ -2440,88 +2431,10 @@
 <div class="li l0 b"><span class="mk">•</span><div class="tx"><b>Updates: </b>Keep training content current by incorporating best practices and any changes in state regulations or agency protocols.</div></div>
 </div>
 <!-- src p119 -->
-<h2 class="pol brk" data-toc="2">EMERGENCY/DISASTER INFORMATION</h2>
-<p class="wac">HOME HEALTH PATIENTS — PATIENT FORM (PAGE 1 OF 2)</p>
-<p class="center"><b>Keep this plan where it can easily be located.</b></p>
-<h4>General Instructions to Patient on Use of This Form</h4>
-<p>This information is provided to you as a quick reference source in case any emergency occurs. Keep this document where it can easily be found. Inform other persons close to you (relative, neighbor, etc.) of its location.</p>
-<div class="list">
-<div class="li l0 o"><span class="mk">1.</span><div class="tx"><b>Golden Years Home Health Supported Living LLC</b> has a nurse on call 24 hours a day. You can reach the nurse through <b>(253) 487-7217</b>. After office hours and on weekends an answering service will reach the nurse and he/she will return your call, come see the patient if necessary, or simply answer any questions you may have.</div></div>
-<div class="li l0 o"><span class="mk">2.</span><div class="tx">In case of a serious medical emergency, call 911. The agency does not operate as an emergency service; therefore, valuable time may be lost by contacting the Agency for an emergency such as a diabetic coma, severe chest pain, unconsciousness, etc.</div></div>
-</div>
-<table class="grid"><tr><td style="width:60%">Name:</td><td>Date:</td></tr><tr><td>Allergies:</td><td>EDP Classification:</td></tr></table>
-<h4>In case of Medical Emergency Dial 911</h4>
-<table class="grid"><tr><td><p style="margin:0 0 4pt">The Emergency Medical Service Dispatcher will need to know:</p>
-<div class="row"><div class="fld"><span class="lb">Your Name:</span><span class="vl"></span></div></div>
-<div class="row"><div class="fld"><span class="lb">Your Telephone Number:</span><span class="vl"></span></div></div>
-<div class="row"><div class="fld"><span class="lb">Your Address:</span><span class="vl"></span></div></div></td></tr></table>
-<table class="grid"><tr><th style="width:50%">List of My Current Medications</th><th>List of My Supplies / DME</th></tr><tr><td style="height:110pt"></td><td></td></tr></table>
-
-<h3 class="brkp" style="break-before:page">EMERGENCY/DISASTER INFORMATION — HOME HEALTH PATIENTS (PAGE 2 OF 2)</h3>
-<h4>Emergency Contact Information</h4>
-<table class="grid"><tr><td colspan="2">In case of emergency please notify the following individual:</td></tr><tr><td style="width:55%">Name:</td><td>Phone:</td></tr><tr><td colspan="2">Relationship:</td></tr></table>
-<h4>Disaster Plan Code</h4>
-<table class="grid"><tr><td>Level 1 – 1: Must be seen and/or evacuated ASAP.</td></tr></table>
-<h4>My Emergency Plan</h4>
-<table class="grid">
-<tr><th style="width:12%">I will:</th><th style="width:40%">Plan</th><th>Details</th></tr>
-<tr><td></td><td>☐ Stay home</td><td></td></tr>
-<tr><td></td><td>☐ Stay with family or friend</td><td>Name and telephone #:</td></tr>
-<tr><td></td><td>☐ Evacuate to a shelter</td><td>Shelter's name and address:</td></tr>
-<tr><td></td><td style="padding-left:20pt">☐ Standard</td><td></td></tr>
-<tr><td></td><td style="padding-left:20pt">☐ Special Needs Registry</td><td></td></tr>
-<tr><td></td><td style="padding-left:20pt">☐ MMF</td><td></td></tr>
-<tr><td></td><td>☐ Evacuate to hospital</td><td></td></tr>
-</table>
-<h4>Comments</h4>
-<table class="grid"><tr><td style="height:80pt">Describe how services will continue in the event of an emergency:</td></tr></table>
-<table class="grid"><tr><th style="width:50%">Physician</th><th>Pharmacy</th></tr><tr><td>Name:</td><td>Name:</td></tr><tr><td>Telephone Number:</td><td>Telephone Number:</td></tr><tr><td>Address:</td><td>Address:</td></tr></table>
-
-<h2 class="pol brk" data-toc="2">ANALYSIS OF RISK ASSESSMENT FOR POTENTIAL DISASTERS</h2>
-<p>Rate each potential disaster: <b>None, Low, Moderate</b> or <b>High</b>.</p>
-<table class="grid">
-<tr><th style="width:65%">A. Natural Disasters</th><th>Risk Level</th></tr>
-<tr><td>1. Flood</td><td></td></tr><tr><td>2. Hurricane</td><td></td></tr><tr><td>3. Tornado</td><td></td></tr><tr><td>4. Extreme Heat</td><td></td></tr><tr><td>5. Winter Storms</td><td></td></tr><tr><td>6. Fires – internal</td><td></td></tr><tr><td>7. Wildfires</td><td></td></tr><tr><td>8. Other – Hail, High Wind, etc.</td><td></td></tr>
-<tr><th>B. Technological Hazards</th><th>Risk Level</th></tr>
-<tr><td>1. Widespread Power Outages</td><td></td></tr><tr><td>2. Hazardous Materials Incidents</td><td></td></tr><tr><td>3. Nuclear Power Plants</td><td></td></tr>
-<tr><th>C. Epidemic</th><th>Risk Level</th></tr><tr><td>&nbsp;</td><td></td></tr>
-<tr><th>D. Terrorism</th><th>Risk Level</th></tr><tr><td>1. Foreign</td><td></td></tr><tr><td>2. Domestic</td><td></td></tr>
-</table>
-<div class="row" style="margin-top:14pt"><div class="fld"><span class="lb">Completed by:</span><span class="vl"></span></div><div class="fld w2"><span class="lb">Date:</span><span class="vl"></span></div></div>
-
+<!--FORM:emergency-->
+<!--FORM:risk-->
 <!-- src p122 -->
-<h2 class="pol brk" data-toc="2">AGENCY EMERGENCY PREPAREDNESS PLAN EVALUATION</h2>
-<table class="grid yn"><tr><th colspan="4" style="text-align:center">EMERGENCY PREPAREDNESS PLAN TASKS EVALUATED</th></tr>
-<tr><th>Initial Preparation</th><th class="c">Yes</th><th class="c">No</th><th class="c">N/A</th></tr>
-<tr><td>Plan has been reviewed within the last 12 months.</td><td></td><td></td><td></td></tr>
-<tr><td>All employees and their alternates responsible for executing work-around for a mechanized process have been identified in the Agency Business Recovery Plan (ABRP) and properly trained.</td><td></td><td></td><td></td></tr>
-<tr><td>All employees responsible for the execution of the ABRP have received ongoing training in Disaster Recovery and Emergency Management.</td><td></td><td></td><td></td></tr>
-<tr><td>The ABRP has been approved by the owner(s) and/or Administrator, and Governing Body.</td><td></td><td></td><td></td></tr>
-<tr><td>The physical and logical security at the alternate site is at least as stringent as the security at the disaster location.</td><td></td><td></td><td></td></tr>
-<tr><th>Preparedness</th><th class="c">Yes</th><th class="c">No</th><th class="c">N/A</th></tr>
-<tr><td>Administrative Responsibilities</td><td></td><td></td><td></td></tr>
-<tr><td colspan="4"><b>Communication:</b></td></tr>
-<tr><td style="padding-left:16pt">• Current list of staff with all applicable contact members in place.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Disaster Calling Tree for Patient Emergencies in place and up-to-date.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Administrative call in place and effective.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Backup communication plan for staff and patients sufficient.</td><td></td><td></td><td></td></tr>
-<tr><td colspan="4"><b>Patient Triage:</b></td></tr>
-<tr><td style="padding-left:16pt">• Triage list current and correct.</td><td></td><td></td><td></td></tr>
-<tr><td colspan="4"><b>Secure Office Building:</b></td></tr>
-<tr><td style="padding-left:16pt">• Fire extinguishers and smoke detectors in place and working properly.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Exits marked accurately and clearly for emergency routes.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Mail safety measures maintained.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Essential equipment for keeping the agency open identified.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Knowledge of repair or replace damaged equipment demonstrated.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Extra supplies stored as planned.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Knowledge of shutdown of heating/air condition system demonstrated.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• All aspects of physical and logical security at the alternate site conform to current regulatory security procedures.</td><td></td><td></td><td></td></tr>
-<tr><td colspan="4"><b>Information Technology System:</b></td></tr>
-<tr><td style="padding-left:16pt">• Antivirus software and firewall in place.</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">• Computer data backed up daily.</td><td></td><td></td><td></td></tr>
-</table>
-<div class="row" style="margin-top:14pt"><div class="fld"><span class="lb">Evaluated by:</span><span class="vl"></span></div><div class="fld w2"><span class="lb">Date:</span><span class="vl"></span></div></div>
-
+<!--FORM:planeval-->
 <!-- src p124 -->
 <h3 id="h230" class="" data-toc="3">Hazard Vulnerability Assessment (HVA) for a Home Health Agency</h3>
 <h4 id="h231" class="">Introduction</h4>
@@ -2558,71 +2471,9 @@
 <div class="li l0 b"><span class="mk">•</span><div class="tx"><b>Data Security: </b>Assess the risk of data breaches and implement measures to protect sensitive information.</div></div>
 </div>
 <!-- src p280 -->
-<h2 class="pol brk" data-toc="2">HAZARD VULNERABILITY ASSESSMENT WORKSHEET</h2>
-<div class="row"><div class="fld"><span class="lb">Agency:</span><span class="vl">Golden Years Home Health Supported Living LLC</span></div><div class="fld w2"><span class="lb">Date:</span><span class="vl"></span></div></div>
-<p class="small muted">Mark one box in each group. Score = Probability × Vulnerability × Preparedness (highest possible 27). Review at least annually and after any event.</p>
-<table class="grid hva"><tr><th rowspan="2" style="width:22%">Event</th><th colspan="3" class="c">Probability</th><th colspan="3" class="c">Vulnerability / Degree of disruption</th><th colspan="3" class="c">Preparedness</th><th rowspan="2" class="c">Score</th></tr>
-<tr><th class="c">High (3)</th><th class="c">Mod. (2)</th><th class="c">Low (1)</th><th class="c">High (3)</th><th class="c">Mod. (2)</th><th class="c">Low (1)</th><th class="c">Low (3)</th><th class="c">Mod. (2)</th><th class="c">High (1)</th></tr>
-<tr><td>Ice / Snow</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Flooding</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Earthquake</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Hurricane</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Hazardous Material Accident</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Fire</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Tornado</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Volcano</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Civil Disturbance</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Mass Casualty Event</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Terrorist Attacks</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Pandemic / Infectious Disease</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Electrical Failure</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Communications Failure</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Information System Failure</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Water Failure</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Transportation Interruption</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>Environmental / Altered Air Quality Pollution</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-</table>
-<div class="row" style="margin-top:12pt"><div class="fld"><span class="lb">Completed by:</span><span class="vl"></span></div><div class="fld w2"><span class="lb">Title:</span><span class="vl"></span></div></div>
-
+<!--FORM:hva-->
 <!-- src p126 -->
-<h2 class="pol brk" data-toc="2">CHECKLIST FOR AGENCY BUSINESS RECOVERY PLAN</h2>
-<p class="wac">CONTINUITY OF OPERATIONS</p>
-<table class="grid yn"><tr><th>Agency Business Recovery Plan (ABRP) – Level I (Executive Awareness/Authority)</th><th class="c">Yes</th><th class="c">No</th><th class="c">N/A</th></tr>
-<tr><td>ABRP has been developed?</td><td></td><td></td><td></td></tr>
-<tr><td>ABRP has been updated within the last 6 months?</td><td></td><td></td><td></td></tr>
-<tr><th colspan="4">Agency Business Recovery Plan (ABRP) – Level II (Plan Development and Documentation)</th></tr>
-<tr><td>A classification (level of risk – low, moderate, high) has been assigned to the Business Process/Function/Component that this Agency supports</td><td></td><td></td><td></td></tr>
-<tr><td>ABRP has been documented</td><td></td><td></td><td></td></tr>
-<tr><td>ABRP has been maintained</td><td></td><td></td><td></td></tr>
-<tr><td colspan="4"><b>ABRP includes the following sections:</b></td></tr>
-<tr><td style="padding-left:16pt">1. Identification</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">2. Incident Management</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:32pt">• Responsible agency officer</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:32pt">• Personnel responsible for updates</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">3. Response</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">4. Recovery</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">5. Restoration</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">6. Plan Exercise</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:16pt">7. Plan Maintenance</td><td></td><td></td><td></td></tr>
-<tr><td>Business Recovery Personnel/Teams and Contact Information</td><td></td><td></td><td></td></tr>
-<tr><td>ABRP identifies necessary support equipment (documentation/forms, equipment, spare parts, etc.) to recover the Agency and/or functions</td><td></td><td></td><td></td></tr>
-<tr><td>ABRP has an alternative site for recovery</td><td></td><td></td><td></td></tr>
-<tr><td>All critical or important data required to support the agency is being backed up</td><td></td><td></td><td></td></tr>
-<tr><td>Critical/important data is being stored in a protected location off-site</td><td></td><td></td><td></td></tr>
-<tr><td>Agency conducts a walk-through exercise of the Plan at least annually</td><td></td><td></td><td></td></tr>
-<tr><td>The walk-through element exercises have a prepared plan that includes:</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:32pt">• Description</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:32pt">• Scope</td><td></td><td></td><td></td></tr>
-<tr><td style="padding-left:32pt">• Objective</td><td></td><td></td><td></td></tr>
-<tr><td>A current copy of the ABRP is maintained off-site</td><td></td><td></td><td></td></tr>
-<tr><td>All users of the ABRP have ready access to a current copy at all times</td><td></td><td></td><td></td></tr>
-<tr><td>There is an audit trail of the changes made to the ABRP</td><td></td><td></td><td></td></tr>
-</table>
-<div class="row" style="margin-top:14pt"><div class="fld"><span class="lb">Reviewed by:</span><span class="vl"></span></div><div class="fld w2"><span class="lb">Date:</span><span class="vl"></span></div></div>
-
+<!--FORM:recovery-->
 <!-- src p128 -->
 <h2 id="h234" class="pol brk" data-toc="2">ADMINISTRATOR RESPONSIBILITIES</h2>
 <h4 id="h235" class="">Purpose</h4>
@@ -2696,18 +2547,18 @@
 <div class="li l0 o"><span class="mk">(11)</span><div class="tx">The applicant or licensee must identify an administrator. The administrator must be a home health employee and possess education and experience required by the agency's policies. The administrator is responsible to:</div></div>
 <div class="li l0 o"><span class="mk">(c)</span><div class="tx">Designate in writing an alternate to act in the administrator's absence;</div></div>
 </div>
-<h3 id="h252" class="">Policy During the absence of the Administrator,</h3>
-<p>During the absence of the Administrator, will be the designated person who will assume all administrative responsibilities for the operation of the Agency.</p>
-<p>Ahmed M Ahmed MD MPH, Alternate Administrator, will carry a cell phone to assure availability when needed.</p>
+<h3 id="h252" class="">Policy During the absence of the Administrator</h3>
+<p>During the absence of the Administrator, {{abs_alt_admin|Alternate Administrator|1.9in}} will be the designated person who will assume all administrative responsibilities for the operation of the Agency.</p>
+<p>{{abs_alt_admin|Alternate Administrator|1.9in}}, Alternate Administrator, will carry a cell phone to assure availability when needed.</p>
 <h4 id="h253" class="">Assignment of responsibility during the absence of the Administrator</h4>
-<p>I,, Administrator for the Agency, do hereby give full administrative authority to Ahmed M Ahmed MD MPH, Alternate Administrator, during my absences from the premises of the Agency.</p>
-<p>I,, Administrator, have been appointed Disaster Coordinator and has been appointed Alternate Disaster Coordinator.</p>
-<p class="ind">, Administrator, Disaster Coordinator</p>
-<p>Accepted:, Alternate Administrator, Alternate Disaster Coordinator</p>
+<p>I, {{abs_admin|Administrator|1.9in}}, Administrator for the Agency, do hereby give full administrative authority to {{abs_alt_admin|Alternate Administrator|1.9in}}, Alternate Administrator, during my absences from the premises of the Agency.</p>
+<p>I, {{abs_admin|Administrator|1.9in}}, Administrator, have been appointed Disaster Coordinator and {{abs_alt_disaster|Alternate Disaster Coordinator|1.9in}} has been appointed Alternate Disaster Coordinator.</p>
+<div class="sig"><div><div class="line">{{abs_admin_sig|Administrator, Disaster Coordinator|bare}}</div><div class="cap">Administrator, Disaster Coordinator</div></div><div class="d"><div class="line">{{abs_admin_date|Administrator, Disaster Coordinator — date|bare}}</div><div class="cap">Date</div></div></div>
+<div class="sig"><div><div class="line">{{abs_alt_sig|Accepted: Alternate Administrator, Alternate Disaster Coordinator|bare}}</div><div class="cap">Accepted: Alternate Administrator, Alternate Disaster Coordinator</div></div><div class="d"><div class="line">{{abs_alt_date|Accepted: Alternate Administrator, Alternate Disaster Coordinator — date|bare}}</div><div class="cap">Date</div></div></div>
 <h4 id="h254" class="">Assignment of Responsibility during the absence of the Director of Clinical Services</h4>
-<p>I,, Director of Clinical Services, do hereby give clinical authority to, Alternate Director of Clinical Services, during my absences from the premises of the Agency.</p>
-<p class="ind">, Director of Clinical Services</p>
-<p>Accepted:, Alternate Director of Clinical Services.</p>
+<p>I, {{abs_docs|Director of Clinical Services|1.9in}}, Director of Clinical Services, do hereby give clinical authority to {{abs_alt_docs|Alternate Director of Clinical Services|1.9in}}, Alternate Director of Clinical Services, during my absences from the premises of the Agency.</p>
+<div class="sig"><div><div class="line">{{abs_docs_sig|Director of Clinical Services|bare}}</div><div class="cap">Director of Clinical Services</div></div><div class="d"><div class="line">{{abs_docs_date|Director of Clinical Services — date|bare}}</div><div class="cap">Date</div></div></div>
+<div class="sig"><div><div class="line">{{abs_alt_docs_sig|Accepted: Alternate Director of Clinical Services|bare}}</div><div class="cap">Accepted: Alternate Director of Clinical Services</div></div><div class="d"><div class="line">{{abs_alt_docs_date|Accepted: Alternate Director of Clinical Services — date|bare}}</div><div class="cap">Date</div></div></div>
 <!-- src p131 -->
 <h1 id="h255" class="part" data-toc="1">WAC 246-335-520 DELIVERY OF SERVICES</h1>
 <h2 id="h256" class="pol" data-toc="2">ADMISSION, TRANSFER &amp; DISCHARGE POLICY</h2>
@@ -4714,11 +4565,9 @@
 <div class="li l0 o"><span class="mk">8.</span><div class="tx">To pay for care or services not covered by 3rd party payers.</div></div>
 <div class="li l0 o"><span class="mk">9.</span><div class="tx">To comply with the rules and regulations established by the agency and any changes subsequent to the rules.</div></div>
 </div>
-<p>Signature of Patient Date</p>
-<p>Nurse/Therapist Signature Date</p>
-<table class="grid">
-<tr><td>PATIENT NAME (Last, First)</td><td>MEDICAL RECORD #</td></tr>
-</table>
+<div class="sig"><div><div class="line">{{pr_sig_patient|Signature of patient|bare}}</div><div class="cap">Signature of patient</div></div><div class="d"><div class="line">{{pr_sig_patient_date|Signature of patient — date|bare}}</div><div class="cap">Date</div></div></div>
+<div class="sig"><div><div class="line">{{pr_sig_agency|Nurse/therapist signature|bare}}</div><div class="cap">Nurse/therapist signature</div></div><div class="d"><div class="line">{{pr_sig_agency_date|Nurse/therapist signature — date|bare}}</div><div class="cap">Date</div></div></div>
+<table class="grid"><tr><td style="width:62%"><b>Patient name (last, first):</b> {{patient_name|Patient name|2in}}</td><td><b>Medical record #:</b> {{mr|Medical record #|1in}}</td></tr></table>
 <h4 id="h442" class="">Declaración de Propósitos</h4>
 <p>Se prevé que la observancia de estos derechos y responsabilidades contribuirá a la atención más eficaz y una mayor satisfacción para el paciente, así como el personal. Los derechos serán respetados por todo el personal y se integran en todos los programas de atención médica domiciliaria. Una copia de estos derechos se le dará a los pacientes y sus familias o representante designado. Si el paciente o sus / su representante designado es incapaz de leer la Declaración de Derechos y Responsabilidades, se les leerá a ellos. Si el paciente o su representante / no habla Inglés, se proporcionará una copia de estos derechos en un idioma que se entienda. El paciente o sus / su representante designado tiene el derecho de ejercer estos derechos. En el caso de un paciente declarado incompetente, los derechos del paciente son ejercidas por la persona designada por la ley para actuar en nombre del paciente. En el caso de un paciente que no ha sido juzgado incompetente, cualquier representante legal podrá ejercer los derechos del paciente en la medida permitida por la ley.</p>
 <!-- src p235 -->
@@ -4789,14 +4638,9 @@
 <div class="li l0 o"><span class="mk">8.</span><div class="tx">Pagar por los servicios que no estén cubiertos por una tercera parte.</div></div>
 <div class="li l0 o"><span class="mk">9.</span><div class="tx">Acatar las reglas y regulaciones establecidas por la agencia y/o cualquier modificación de las mismas.</div></div>
 </div>
-<p>Firma del Paciente Fecha</p>
-<!-- src p238 -->
-<p>Firma del representante de la agencia Fecha</p>
-<table class="grid">
-<tr><td>NOMBRE DEL PACIENTE (Apellido, Nombre)</td><td>EXPEDIENTE #</td></tr>
-</table>
-<p>Firma del Paciente Fecha</p>
-<p>Firma del representante de la agencia Fecha</p>
+<div class="sig"><div><div class="line">{{pr_sig_patient|Firma del paciente|bare}}</div><div class="cap">Firma del paciente</div></div><div class="d"><div class="line">{{pr_sig_patient_date|Firma del paciente — date|bare}}</div><div class="cap">Fecha</div></div></div>
+<div class="sig"><div><div class="line">{{pr_sig_agency|Firma del representante de la agencia|bare}}</div><div class="cap">Firma del representante de la agencia</div></div><div class="d"><div class="line">{{pr_sig_agency_date|Firma del representante de la agencia — date|bare}}</div><div class="cap">Fecha</div></div></div>
+<table class="grid"><tr><td style="width:62%"><b>Nombre del paciente (apellido, nombre):</b> {{patient_name|Patient name|2in}}</td><td><b>Expediente #:</b> {{mr|Medical record #|1in}}</td></tr></table>
 <!-- src p239 -->
 <h1 id="h447" class="part" data-toc="1">WAC 246-335-540 HOME HEALTH PLAN OF CARE</h1>
 <h2 id="h448" class="pol" data-toc="2">PLAN OF CARE</h2>

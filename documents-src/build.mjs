@@ -1,30 +1,33 @@
-// Builds the downloadable PDFs in web/public/documents/ from the templates.
+// Builds the downloadable PDFs in web/public/documents/ from the templates in
+// web/src/documents/ (the same code that prints filled forms in the app).
 //
 //   cd golden-years-hcms
 //   npm i --no-save playwright-core        (once; uses an installed Chrome/Chromium)
 //   node documents-src/build.mjs            (all documents)
-//   node documents-src/build.mjs policy     (just one: policy | admission | assessment | safety | nurse | management)
+//   node documents-src/build.mjs policy     (just one — any key in web/src/documents/registry.js)
 //
-// Needs `pdftotext` (poppler-utils) for the manual's table-of-contents page numbers.
+// Needs `pdftotext` (poppler-utils) for page numbers and counts.
 // Set CHROME_PATH if Chrome isn't found automatically.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
-import { wrapDocument, coverPage } from '../web/src/documents/shell.js'
+import { wrapDocument } from '../web/src/documents/shell.js'
 import { DOCUMENTS } from '../web/src/documents/registry.js'
+import { MODULES } from '../web/src/documents/modules.js'
+import { renderWithBody } from '../web/src/documents/policyManual.js'
+import COUNTS from '../web/src/documents/pageCounts.js'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'web/public/documents')
+const DOCS_SRC = join(ROOT, 'web/src/documents')
 mkdirSync(OUT, { recursive: true })
 const logo = 'data:image/png;base64,' + readFileSync(join(ROOT, 'web/src/assets/logo.png')).toString('base64')
 
 const CHROME = [process.env.CHROME_PATH, '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/usr/bin/google-chrome',
   '/usr/bin/chromium', '/usr/bin/chromium-browser', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
   .find((p) => p && existsSync(p))
-
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 async function toPdf(browser, html, file) {
   const page = await browser.newPage()
@@ -34,73 +37,47 @@ async function toPdf(browser, html, file) {
   await page.close()
 }
 
-// ---------------- Policy & Procedure Manual ----------------
-function policyHtml(body, pages = {}) {
-  const heads = [...body.matchAll(/<h([123]) id="(h\d+)"[^>]*data-toc="(\d)"[^>]*>(.*?)<\/h\1>/g)]
-  const toc = heads.map(([, , id, lvl, text]) => {
-    const pg = pages[id] ? String(pages[id]) : '000'
-    return `<div class="te l${lvl}"><span class="tt">${text}</span><span class="dots"></span><span class="pg">${pg}</span></div>`
-  }).join('\n')
-  // Invisible marker in each heading so the build can find its page number.
-  const marked = body.replace(/(<h([123]) id="(h\d+)"[^>]*data-toc="\d"[^>]*>)/g, '$1<span class="pm">§$3§</span>')
-  const cover = coverPage({
-    logo, kicker: 'Home Health Agency', title: 'Policy and Procedure Manual',
-    subtitle: 'Chapter 246-335 WAC — In-Home Services Agencies (Home Health)',
-    meta: `Revised ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
-  })
-  return wrapDocument({
-    title: 'Policy and Procedure Manual', logo, docTitle: 'Policy & Procedure Manual',
-    body: `${cover}\n<section class="toc"><h1>Table of Contents</h1>${toc}</section>\n${marked}`,
-  })
-}
-
-async function buildPolicy(browser) {
-  const body = readFileSync(join(ROOT, 'documents-src/policy-manual.html'), 'utf8')
-  const file = join(OUT, 'policy-and-procedure-manual.pdf')
-  await toPdf(browser, policyHtml(body), file)
-  let pages = {}
-  try {
-    const text = execFileSync('pdftotext', ['-enc', 'UTF-8', file, '-'], { maxBuffer: 1 << 28 }).toString('utf8')
-    text.split('\f').forEach((pg, i) => {
-      for (const m of pg.matchAll(/§(h\d+)§/g)) if (!pages[m[1]]) pages[m[1]] = i + 1
-    })
-  } catch (e) {
-    console.warn('pdftotext not available — table of contents will have no page numbers.')
-  }
-  await toPdf(browser, policyHtml(body, pages), file)
-  console.log('✓ policy-and-procedure-manual.pdf', Object.keys(pages).length, 'TOC entries numbered')
-}
-
-// ---------------- Forms (blank) ----------------
-function pagesOf(file) {
+// First page each "§id§" marker appears on, plus the total page count.
+function scan(file) {
   const pages = {}
+  let total = 0
   try {
     const text = execFileSync('pdftotext', ['-enc', 'UTF-8', file, '-'], { maxBuffer: 1 << 28 }).toString('utf8')
-    text.split('\f').forEach((pg, i) => {
-      for (const m of pg.matchAll(/§(\w+)§/g)) if (!pages[m[1]]) pages[m[1]] = i + 1
-    })
-  } catch { console.warn('pdftotext not available — no page numbers in contents.') }
-  return pages
+    const sheets = text.split('\f')
+    total = sheets.length - (sheets[sheets.length - 1].trim() ? 0 : 1)
+    sheets.forEach((pg, i) => { for (const m of pg.matchAll(/§(\w+)§/g)) if (!pages[m[1]]) pages[m[1]] = i + 1 })
+  } catch { console.warn('pdftotext not available — no page numbers.') }
+  return { pages, total }
 }
 
-async function buildForm(browser, doc) {
-  const mod = await import(`../web/src/documents/${doc.module}.js`)
+async function build(browser, doc) {
   const file = join(OUT, doc.file)
-  const make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: mod.render({}, { logo, blank: true, pages }) })
+  let make
+  if (doc.key === 'policy') {
+    const body = readFileSync(join(DOCS_SRC, 'policy/manualBody.html'), 'utf8')
+    make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: renderWithBody(body, {}, { logo, pages }) })
+  } else {
+    const mod = MODULES[doc.key]
+    make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: mod.render({}, { logo, blank: true, pages }) })
+  }
   await toPdf(browser, make({}), file)
-  const pages = pagesOf(file)
-  if (Object.keys(pages).length) await toPdf(browser, make(pages), file)
-  console.log('✓', doc.file, Object.keys(pages).length ? `(${Object.keys(pages).length} contents entries)` : '')
+  let { pages, total } = scan(file)
+  if (Object.keys(pages).length) {
+    await toPdf(browser, make(pages), file)
+    total = scan(file).total
+    if (doc.key === 'policy') {
+      writeFileSync(join(DOCS_SRC, 'policy/pages.js'), `// Table-of-contents page numbers, written by documents-src/build.mjs.\nexport default ${JSON.stringify(pages)}\n`)
+    }
+  }
+  COUNTS[doc.key] = total
+  console.log('✓', doc.file, `${total} pages`)
 }
 
 const only = process.argv[2]
 const browser = await chromium.launch({ executablePath: CHROME })
 try {
-  if (!only || only === 'policy') await buildPolicy(browser)
-  for (const d of DOCUMENTS.filter((d) => d.module)) {
-    if (!only || only === d.key) await buildForm(browser, d)
-  }
+  for (const d of DOCUMENTS) if (!only || only === d.key) await build(browser, d)
 } finally {
   await browser.close()
 }
-void esc
+writeFileSync(join(DOCS_SRC, 'pageCounts.js'), `// Pages in each ready-made PDF — written by documents-src/build.mjs.\nexport default ${JSON.stringify(COUNTS, null, 1)}\n`)

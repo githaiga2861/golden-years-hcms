@@ -25,7 +25,7 @@ function fromClient(c) {
 
 export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
   const mod = MODULES[doc.key]
-  const docTitle = doc.blankLabel ? `${doc.title} — Worksheets` : doc.title
+  const docTitle = doc.title
   const sections = useMemo(() => fieldsOf(mod.schema), [mod])
   const [data, setData] = useState(() => ({ ...(mod.defaults || {}), ...(record?.data || {}) }))
   const [clientId, setClientId] = useState(record?.client_id || '')
@@ -93,6 +93,7 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
       header={
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ margin: 0 }}>{docTitle}</h2>
+          {doc.client !== false && (
           <div style={{ display: 'flex', gap: '.6rem', alignItems: 'center', marginTop: '.5rem', flexWrap: 'wrap' }}>
             <span className="muted" style={{ fontSize: '.84rem' }}>Client:</span>
             <select value={clientId} onChange={(e) => pickClient(e.target.value)} style={{ padding: '.35rem .5rem', border: '1px solid var(--line)', borderRadius: 8, maxWidth: 260 }}>
@@ -101,6 +102,7 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
             </select>
             <span className="muted" style={{ fontSize: '.78rem' }}>Picking a client fills in their name, DOB, address and contacts.</span>
           </div>
+          )}
         </div>
       }
       footer={
@@ -147,7 +149,7 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
             <button className="btn btn-quiet" disabled={active === 0} onClick={() => setActive((a) => a - 1)}>← Previous</button>
             {active < sections.length - 1
-              ? <button className="btn btn-outline" onClick={() => setActive((a) => a + 1)}>Next: {sections[active + 1].title} →</button>
+              ? <button className="btn btn-outline" onClick={() => setActive((a) => a + 1)}>Next: {sections[active + 1].title.length > 38 ? `${sections[active + 1].title.slice(0, 36)}…` : sections[active + 1].title} →</button>
               : <button className="btn btn-primary" onClick={print}>Print / Save PDF</button>}
           </div>
         </div>
