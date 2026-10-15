@@ -32,7 +32,7 @@ export default function Documents() {
   useEffect(() => { load() }, [])
 
   const printBlank = (doc) => openPrintable({
-    title: doc.title, short: doc.short,
+    title: doc.blankLabel ? `${doc.title} — Worksheets` : doc.title, short: doc.short,
     body: (logo) => MODULES[doc.key].render({}, { logo, blank: true }),
   })
 
@@ -62,7 +62,7 @@ export default function Documents() {
       </div>
       <HowThisWorks>
         <b>Download PDF</b> gives you the ready-made document with the current logo, address (614 Harrison St, Suite C, Sumner) and phone (253) 487-7217.
-        <b> Print blank</b> opens a fresh copy to print by hand. <b>Fill in</b> opens a form where you type the answers — pick a client to fill their name,
+        <b> Print blank</b> opens a fresh copy to print by hand. For the policy manual, <b>Fill worksheets</b> covers its review log, emergency information, risk, preparedness, business recovery and hazard worksheets. <b>Fill in</b> opens a form where you type the answers — pick a client to fill their name,
         date of birth, address and contacts automatically — then save it and print a clean, filled copy. Saved forms are listed below so you can reopen and reprint them.
       </HowThisWorks>
 
@@ -80,8 +80,8 @@ export default function Documents() {
             </div>
             <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap', marginTop: 'auto', paddingTop: '1rem' }}>
               <a className="btn btn-primary" href={`/documents/${d.file}`} download>Download PDF</a>
-              {MODULES[d.key] && <button className="btn btn-outline" onClick={() => printBlank(d)}>Print blank</button>}
-              {MODULES[d.key] && <button className="btn btn-gold" onClick={() => setFill({ doc: d, record: null })}>Fill in</button>}
+              {MODULES[d.key] && <button className="btn btn-outline" onClick={() => printBlank(d)}>{d.blankLabel || 'Print blank'}</button>}
+              {MODULES[d.key] && <button className="btn btn-gold" onClick={() => setFill({ doc: d, record: null })}>{d.fillLabel || 'Fill in'}</button>}
             </div>
           </div>
         ))}

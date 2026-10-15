@@ -282,3 +282,8 @@ table.data tr.click:hover { background: var(--blue-soft); }
 .pulse-attention {
   animation: pulse-attention 1.4s ease-in-out infinite;
 }
+
+/* Compact tables inside the document fill-in modal */
+.fill-table th, .fill-table td { padding: .35rem .45rem !important; font-size: .78rem; letter-spacing: 0; }
+.fill-table th { white-space: normal; text-transform: none; }
+.fill-table input[type="checkbox"], .fill-table input[type="radio"] { margin: 0; }

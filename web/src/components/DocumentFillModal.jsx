@@ -25,6 +25,7 @@ function fromClient(c) {
 
 export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
   const mod = MODULES[doc.key]
+  const docTitle = doc.blankLabel ? `${doc.title} — Worksheets` : doc.title
   const sections = useMemo(() => fieldsOf(mod.schema), [mod])
   const [data, setData] = useState(() => ({ ...(mod.defaults || {}), ...(record?.data || {}) }))
   const [clientId, setClientId] = useState(record?.client_id || '')
@@ -64,7 +65,7 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
 
   const save = async (status = 'draft') => {
     setSaving(true); setMsg(null)
-    const row = { doc_key: doc.key, client_id: clientId || null, title: data.patient_name || doc.title, data, status }
+    const row = { doc_key: doc.key, client_id: clientId || null, title: data.patient_name || docTitle, data, status }
     const q = recId
       ? supabase.from('document_records').update(row).eq('id', recId).select('id').single()
       : supabase.from('document_records').insert(row).select('id').single()
@@ -81,17 +82,17 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
   }
 
   const print = () => openPrintable({
-    title: `${doc.title}${data.patient_name ? ` — ${data.patient_name}` : ''}`, short: doc.short,
+    title: `${docTitle}${data.patient_name ? ` — ${data.patient_name}` : ''}`, short: doc.short,
     body: (logo) => mod.render(data, { logo }),
   })
 
   const sec = sections[active]
 
   return (
-    <Modal xwide onClose={onClose} title={doc.title}
+    <Modal xwide onClose={onClose} title={docTitle}
       header={
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 style={{ margin: 0 }}>{doc.title}</h2>
+          <h2 style={{ margin: 0 }}>{docTitle}</h2>
           <div style={{ display: 'flex', gap: '.6rem', alignItems: 'center', marginTop: '.5rem', flexWrap: 'wrap' }}>
             <span className="muted" style={{ fontSize: '.84rem' }}>Client:</span>
             <select value={clientId} onChange={(e) => pickClient(e.target.value)} style={{ padding: '.35rem .5rem', border: '1px solid var(--line)', borderRadius: 8, maxWidth: 260 }}>
@@ -131,13 +132,18 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
         )}
         <div ref={bodyRef} style={{ flex: 1, minWidth: 0, maxHeight: '62vh', overflowY: 'auto', paddingRight: '.3rem' }}>
           <h3 className="thread" style={{ marginTop: 0 }}>{sec.title}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: '1rem' }}>
-            {sec.fields.map((f, i) => (
-              <div key={f.k || `h${i}`} style={{ gridColumn: ['text', 'date'].includes(f.type) && !f.heading ? 'auto' : '1 / -1' }}>
-                <FieldInput f={f} data={data} set={set} toggle={toggle} />
+          {blocksOf(sec.fields).map((blk, bi) => (
+            <div key={bi} style={blk.heading ? { border: '1px solid var(--line)', borderRadius: 10, padding: '.8rem .9rem .2rem', marginBottom: '.9rem', background: '#fff' } : { marginBottom: '.6rem' }}>
+              {blk.heading && <div style={{ fontWeight: 700, color: 'var(--blue)', fontSize: '.88rem', marginBottom: '.6rem', paddingBottom: '.35rem', borderBottom: '2px solid var(--gold-soft)' }}>{blk.heading}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: '1rem' }}>
+                {blk.fields.map((f) => (
+                  <div key={f.k} style={{ gridColumn: ['text', 'date'].includes(f.type) && !f.sig ? 'auto' : '1 / -1' }}>
+                    <FieldInput f={f} data={data} set={set} toggle={toggle} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
             <button className="btn btn-quiet" disabled={active === 0} onClick={() => setActive((a) => a - 1)}>← Previous</button>
             {active < sections.length - 1
@@ -150,7 +156,18 @@ export default function DocumentFillModal({ doc, record, onClose, onSaved }) {
   )
 }
 
+// Split a section's fields into blocks, one per heading.
+function blocksOf(fields) {
+  const out = [{ heading: null, fields: [] }]
+  fields.forEach((f) => {
+    if (f.heading) out.push({ heading: f.heading, fields: [] })
+    else out[out.length - 1].fields.push(f)
+  })
+  return out.filter((b) => b.fields.length)
+}
+
 function hasValue(data, f) {
+  if (f.type === 'row') return f.fields.some((x) => hasValue(data, x))
   if (f.type === 'table' || f.type === 'ynTable') return Object.keys(data).some((k) => k.startsWith(`${f.k}.`) && data[k])
   const v = data[f.k]
   return Array.isArray(v) ? v.length > 0 : !!v
@@ -163,8 +180,16 @@ function FieldInput({ f, data, set, toggle }) {
   const label = <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 600, color: 'var(--blue-ink)', marginBottom: '.25rem' }}>{strip(f.label)}</label>
   const v = data[f.k] ?? ''
   switch (f.type) {
+    case 'row': {
+      const cols = f.fields.map((x) => (x.type === 'date' ? 'minmax(150px, .55fr)' : 'minmax(0, 1fr)')).join(' ')
+      return (
+        <div style={{ display: 'grid', gridTemplateColumns: cols, gap: '0 .8rem' }}>
+          {f.fields.map((x) => <FieldInput key={x.k} f={x} data={data} set={set} toggle={toggle} />)}
+        </div>
+      )
+    }
     case 'textarea':
-      return <div className="field">{label}<textarea rows={3} style={inp} value={v} onChange={(e) => set(f.k, e.target.value)} /></div>
+      return <div className="field">{label}<textarea rows={f.rows || 3} style={inp} value={v} onChange={(e) => set(f.k, e.target.value)} /></div>
     case 'date':
       return <div className="field">{label}<input type={/^\d{4}-\d{2}-\d{2}$/.test(v) || !v ? 'date' : 'text'} style={{ ...inp, maxWidth: 220 }} value={v} onChange={(e) => set(f.k, e.target.value)} /></div>
     case 'checks':
@@ -172,15 +197,22 @@ function FieldInput({ f, data, set, toggle }) {
       return (
         <div className="field">
           {f.label && label}
-          <div style={{ display: 'grid', gridTemplateColumns: (f.opts || []).some((o) => o.length > 60) ? '1fr' : 'repeat(auto-fill, minmax(190px, 1fr))', gap: '.3rem .8rem' }}>
-            {(f.opts || []).map((o) => {
+          <div style={{ display: f.inline ? 'flex' : 'grid', flexWrap: 'wrap', gridTemplateColumns: (f.opts || []).some((o) => o.length > 60) ? '1fr' : 'repeat(auto-fill, minmax(190px, 1fr))', gap: '.35rem 1rem' }}>
+            {(f.opts || []).map((o, oi) => {
               const ok = f.type === 'radio' ? v === o : Array.isArray(v) && v.includes(o)
+              const tok = [...String(f.rawOpts?.[oi] || '').matchAll(/\{\{([\w.]+)\|([^|}]*)/g)]
               return (
-                <label key={o} style={{ display: 'flex', gap: '.45rem', alignItems: 'flex-start', fontSize: '.86rem', cursor: 'pointer', lineHeight: 1.35 }}>
-                  <input type={f.type === 'radio' ? 'radio' : 'checkbox'} checked={ok} style={{ marginTop: 3 }}
-                    onChange={() => (f.type === 'radio' ? set(f.k, ok ? '' : o) : toggle(f.k, o))} />
-                  <span>{strip(o)}</span>
-                </label>
+                <div key={o} style={{ display: 'flex', gap: '.45rem', alignItems: 'flex-start', fontSize: '.86rem', lineHeight: 1.35, flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', gap: '.45rem', alignItems: 'flex-start', cursor: 'pointer' }}>
+                    <input type={f.type === 'radio' ? 'radio' : 'checkbox'} checked={ok} style={{ marginTop: 3 }}
+                      onChange={() => (f.type === 'radio' ? set(f.k, ok ? '' : o) : toggle(f.k, o))} />
+                    <span>{strip(o).replace(/[:…\s]+$/, '')}</span>
+                  </label>
+                  {tok.map(([, k, l]) => (
+                    <input key={k} placeholder={l} value={data[k] || ''} style={{ ...inp, padding: '.2rem .45rem', fontSize: '.82rem', width: 'auto', flex: '1 1 120px', minWidth: 110 }}
+                      onChange={(e) => { set(k, e.target.value); if (e.target.value && !ok) (f.type === 'radio' ? set(f.k, o) : toggle(f.k, o)) }} />
+                  ))}
+                </div>
               )
             })}
           </div>
@@ -201,7 +233,7 @@ function YnTableInput({ f, data, set }) {
   return (
     <div className="field">
       {f.label && <label style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--blue-ink)' }}>{strip(f.label)}</label>}
-      <table className="data" style={{ fontSize: '.84rem' }}>
+      <table className="data fill-table" style={{ fontSize: '.84rem' }}>
         <thead><tr><th>{it.descLabel || 'Item'}</th>{opts.map((o) => <th key={o} style={{ textAlign: 'center', width: 54 }}>{o}</th>)}</tr></thead>
         <tbody>
           {it.sections.map((s, si) => [
@@ -239,8 +271,9 @@ function TableInput({ f, data, set }) {
   return (
     <div className="field" style={{ overflowX: 'auto' }}>
       {it.label && <label style={{ fontSize: '.8rem', fontWeight: 600 }}>{strip(it.label)}</label>}
-      <table className="data" style={{ fontSize: '.8rem', minWidth: isTask ? 760 : undefined }}>
-        {it.head && <thead><tr>{it.head.map((h, i) => <th key={i} colSpan={h?.span || 1}>{strip(typeof h === 'object' && h ? h.h : h)}</th>)}</tr></thead>}
+      <table className="data fill-table" style={{ fontSize: '.8rem', minWidth: isTask ? 720 : undefined }}>
+        {it.head && <thead><tr>{it.head.map((h, i) => <th key={i} colSpan={h?.span || 1} rowSpan={h?.rows || 1} style={{ textAlign: h?.span ? 'center' : 'left' }}>{strip(typeof h === 'object' && h ? h.h : h)}</th>)}</tr>
+          {it.head2 && <tr>{it.head2.map((h, i) => <th key={i} style={{ textAlign: 'center', fontSize: '.72rem' }}>{strip(typeof h === 'object' && h ? h.h : h)}</th>)}</tr>}</thead>}
         <tbody>
           {it.rows.map((row, r) => (
             <tr key={r}>

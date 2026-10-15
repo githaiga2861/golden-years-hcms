@@ -4,7 +4,7 @@
 export const DOCUMENTS = [
   { key: 'admission', title: 'Patient Admission Packet', short: 'Patient Admission Packet', module: 'admission', file: 'patient-admission-packet.pdf', fillable: true,
     blurb: 'Patient rights (English & Spanish), consent, assessments, physician orders, nursing and aide care plans, discharge and every other admission form.' },
-  { key: 'policy', title: 'Policy and Procedure Manual', short: 'Policy & Procedure Manual', file: 'policy-and-procedure-manual.pdf',
+  { key: 'policy', title: 'Policy and Procedure Manual', short: 'Policy & Procedure Manual', file: 'policy-and-procedure-manual.pdf', fillLabel: 'Fill worksheets', blankLabel: 'Print worksheets',
     blurb: 'The complete WAC 246-335 policy and procedure manual with job descriptions, emergency plans, checklists and the patient bill of rights.' },
   { key: 'assessment', title: 'Home Care Assessment Form', short: 'Home Care Assessment', module: 'forms/assessment', file: 'home-care-assessment-form.pdf',
     blurb: 'Client information, physical and mental health, social environment, ADLs and IADLs.' },

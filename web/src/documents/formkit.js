@@ -143,37 +143,51 @@ function renderItem(it, data) {
 export function fieldsOf(items) {
   const sections = []
   const seen = new Set()
+  const grouped = items.some((it) => it.t === 'group')
   let cur = { title: 'General', fields: [] }
-  const push = (f) => { if (!f.k || seen.has(f.k)) return; seen.add(f.k); cur.fields.push(f) }
+  const take = (f) => { if (!f.k || seen.has(f.k)) return null; seen.add(f.k); return f }
+  const push = (f) => { const x = take(f); if (x) cur.fields.push(x) }
+  const clean = (h) => String(h || '').replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, '').replace(/\{\{[^}]+\}\}/g, '…').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
   const fromText = (html, ctx) => {
     for (const m of String(html).matchAll(TOKEN)) push({ k: m[1], label: m[2] || ctx || m[1], type: 'text' })
   }
-  const walk = (list) => list.forEach((it) => {
+  const pushRow = (list) => {
+    const fs = list.map(take).filter(Boolean)
+    if (fs.length > 1) cur.fields.push({ type: 'row', k: `row:${fs[0].k}`, fields: fs })
+    else if (fs.length) cur.fields.push(fs[0])
+  }
+  const newSection = (title) => {
+    if (cur.fields.some((f) => !f.heading)) sections.push(cur)
+    cur = { title, fields: [] }
+  }
+  const walk = (list, top) => list.forEach((it) => {
     switch (it.t) {
       case 'group':
-        if (cur.fields.length) sections.push(cur)
-        cur = { title: it.title, fields: [] }
-        walk(it.items)
-        sections.push(cur)
-        cur = { title: 'General', fields: [] }
+        newSection(it.title)
+        walk(it.items, false)
+        newSection('General')
         break
-      case 'cols': it.cols.forEach(walk); break
-      case 'sh': case 'sh2': cur.fields.push({ heading: String(it.text).replace(/<[^>]+>/g, '') }); break
+      case 'title': if (!grouped && top && !cur.fields.length) cur.title = it.text; break
+      case 'cols': it.cols.forEach((c) => walk(c, false)); break
+      case 'sh':
+        if (!grouped && top) newSection(clean(it.text).replace(/^\d+\.\s*/, ''))
+        else cur.fields.push({ heading: clean(it.text) })
+        break
+      case 'sh2': cur.fields.push({ heading: clean(it.text) }); break
       case 'p': case 'note': case 'html': fromText(it.html); break
       case 'list': it.items.flat().forEach((x) => fromText(x)); break
-      case 'row': it.f.forEach(([k, label, , type]) => push({ k, label: label?.replace(/:$/, '') || k, type: type || (/date/i.test(label || '') ? 'date' : 'text') })); break
-      case 'lines': case 'box': fromText(it.label || ''); push({ k: it.k, label: String(it.label || 'Notes').replace(/<[^>]+>/g, '').replace(/\{\{[^}]+\}\}/g, '…'), type: 'textarea' }); break
-      case 'checks': fromText(it.label || ''); push({ k: it.k, label: String(it.label || '').replace(/<[^>]+>/g, '').replace(/\{\{[^}]+\}\}/g, '…') || 'Select', type: it.single ? 'radio' : 'checks', opts: it.opts.map((o) => o.replace(/\{\{[^}]+\}\}/g, '').trim()), rawOpts: it.opts }); it.opts.forEach((o) => fromText(o)); break
-      case 'yn': fromText(it.label); push({ k: it.k, label: String(it.label).replace(/<[^>]+>/g, '').replace(/\{\{[^}]+\}\}/g, '…'), type: 'radio', opts: it.opts || ['Yes', 'No'] }); break
+      case 'row': pushRow(it.f.map(([k, label, , type]) => ({ k, label: (label || k).replace(/:$/, ''), type: type || (/date/i.test(label || '') ? 'date' : 'text') }))); break
+      case 'sig': pushRow(it.f.map(([k, label, kind]) => ({ k, label, type: kind === 'date' ? (/time|title/i.test(label) ? 'text' : 'date') : 'text', sig: kind !== 'date' }))); break
+      case 'lines': case 'box': fromText(it.label || ''); push({ k: it.k, label: clean(it.label) || 'Notes', type: 'textarea', rows: Math.min(8, Math.max(2, it.n || Math.round((it.h || 52) / 26))) }); break
+      case 'checks': fromText(it.label || ''); push({ k: it.k, label: clean(it.label), type: it.single ? 'radio' : 'checks', opts: it.opts.map(optKey), rawOpts: it.opts, cols: it.cols }); it.opts.forEach((o) => { for (const m of String(o).matchAll(TOKEN)) seen.add(m[1]) }); break
+      case 'yn': fromText(it.label); push({ k: it.k, label: clean(it.label), type: 'radio', opts: it.opts || ['Yes', 'No'], inline: true }); break
       case 'table': push({ k: it.k, type: 'table', label: it.label || '', item: it }); break
-      case 'ynTable': push({ k: it.k, type: 'ynTable', label: it.label || it.descLabel || '', item: it }); break
-      case 'sig': it.f.forEach(([k, label, kind]) => push({ k, label, type: kind === 'date' ? 'date' : 'text' })); break
+      case 'ynTable': push({ k: it.k, type: 'ynTable', label: it.label || '', item: it }); break
       default: break
     }
   })
-  walk(items)
-  if (cur.fields.length) sections.push(cur)
-  // drop headings with no fields beneath them
+  walk(items, true)
+  if (cur.fields.some((f) => !f.heading)) sections.push(cur)
   sections.forEach((sec) => {
     sec.fields = sec.fields.filter((f, i, arr) => !f.heading || (arr[i + 1] && !arr[i + 1].heading))
   })
