@@ -1,5 +1,5 @@
 // Small shared UI primitives kept in one file for easy maintenance.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * A faint, collapsed-by-default "How this works" hint. Use on any page
@@ -30,7 +30,29 @@ export function HowThisWorks({ children }) {
 }
 
 
+// Freeze the page behind an open modal (counts nested modals).
+let openModals = 0
+function useScrollLock() {
+  useEffect(() => {
+    const html = document.documentElement
+    if (openModals++ === 0) {
+      const gap = window.innerWidth - html.clientWidth
+      html.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden'
+      if (gap > 0) document.body.style.paddingRight = `${gap}px`
+    }
+    return () => {
+      if (--openModals === 0) {
+        html.style.overflow = ''
+        document.body.style.overflow = ''
+        document.body.style.paddingRight = ''
+      }
+    }
+  }, [])
+}
+
 export function Modal({ title, header, onClose, children, footer, wide, xwide }) {
+  useScrollLock()
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`modal ${wide ? 'modal-wide' : ''} ${xwide ? 'modal-xwide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>

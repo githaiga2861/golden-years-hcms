@@ -146,8 +146,8 @@ table.data tr.click:hover { background: var(--blue-soft); }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .9rem; }
 
 /* ---------- modal ---------- */
-.overlay { position: fixed; inset: 0; background: rgba(10,37,64,.45); display: grid; place-items: center; z-index: 60; padding: 1rem; }
-.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(10,37,64,.3); }
+.overlay { overscroll-behavior: contain; position: fixed; inset: 0; background: rgba(10,37,64,.45); display: grid; place-items: center; z-index: 60; padding: 1rem; }
+.modal { overscroll-behavior: contain; background: #fff; border-radius: 12px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(10,37,64,.3); }
 .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
 .modal-body { padding: 1.15rem 1.25rem; }
 .modal-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .9rem 1.25rem; border-top: 1px solid var(--line); }
@@ -361,3 +361,13 @@ table.data tr.click:hover { background: var(--blue-soft); }
 .doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-print { color: var(--blue); border-color: var(--blue); }
 .doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-print:hover { background: var(--blue-soft); }
 .doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-fill { background: var(--gold); box-shadow: none; }
+
+.modal [style*="overflow-y: auto"], .modal [style*="overflowY"] { overscroll-behavior: contain; }
+/* Highlighted (main) document card */
+.doc-card-main { border: 1.5px solid #4a90e2; box-shadow: 0 0 0 1px rgba(74,144,226,.35), 0 0 22px rgba(40,130,240,.35), 0 12px 30px rgba(11,83,148,.18); background: linear-gradient(180deg, #f3f8ff 0%, #fff 60%); }
+.doc-card-main:hover { border-color: #2f7fd8; box-shadow: 0 0 0 1px rgba(74,144,226,.45), 0 0 28px rgba(40,130,240,.45), 0 16px 34px rgba(11,83,148,.22); }
+.doc-card-main .doc-icon { background: linear-gradient(135deg, #0b5394, #1a6fbd); color: #f3d77a; border-color: #0b5394; }
+.doc-chip-main { background: #0b5394; color: #fff; }
+.doc-ws { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .55rem; }
+.doc-ws button { border: 1px solid #c7d6e8; background: #fff; color: var(--blue); border-radius: 99px; padding: .1rem .5rem; font-size: .7rem; cursor: pointer; font-family: inherit; }
+.doc-ws button:hover { background: var(--blue-soft); }

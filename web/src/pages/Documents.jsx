@@ -86,10 +86,11 @@ export default function Documents() {
   )
 
   const card = (d) => (
-    <article key={d.key} className="doc-card">
+    <article key={d.key} className={`doc-card ${d.section === 'main' ? 'doc-card-main' : ''}`}>
       <div className="doc-card-top">
         <div className="doc-icon"><Icon name={ICON[d.key]} /></div>
         <div className="doc-meta">
+          {d.section === 'main' && <span className="doc-chip doc-chip-main">Main document</span>}
           {PAGES[d.key] > 0 && <span className="doc-chip">{pagesLabel(d.key)}</span>}
           {d.fromManual && <span className="doc-chip doc-chip-gold">From the manual</span>}
         </div>
@@ -121,42 +122,11 @@ export default function Documents() {
         listed under it, which can also be filled one at a time. The agency holds two licence categories, so there are two manuals: <b>Home Health</b> (skilled services) and <b>Home Care</b> (non-skilled services). Saved forms are listed at the bottom to reopen, edit and reprint.
       </HowThisWorks>
 
-      {main && (
-        <section className="doc-hero">
-          <div className="doc-hero-glow" aria-hidden="true" />
-          <div className="doc-hero-body">
-            <div className="doc-hero-icon"><Icon name="book" size={30} /></div>
-            <div className="doc-hero-text">
-              <div className="doc-hero-kicker">Main document · {main.category}{PAGES.policy ? ` · ${pagesLabel('policy')}` : ''}</div>
-              <h2>{main.title}</h2>
-              <p>{main.blurb}</p>
-              <div className="doc-hero-includes">
-                <span>Includes fillable</span>
-                {fromManual.map((w) => (
-                  <button key={w.key} className="doc-hero-pill" onClick={() => setFill({ doc: w, record: null })} title={`Fill the ${w.title} on its own`}>
-                    {w.title}
-                  </button>
-                ))}
-              </div>
-              {actions(main, 'doc-actions-hero')}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {homeCare && (
-        <section className="doc-hero doc-hero-alt">
-          <div className="doc-hero-body">
-            <div className="doc-hero-icon"><Icon name="book" size={30} /></div>
-            <div className="doc-hero-text">
-              <div className="doc-hero-kicker">{homeCare.category}{PAGES.homecare ? ` · ${pagesLabel('homecare')}` : ''} · {homeCare.wac}</div>
-              <h2>{homeCare.title}</h2>
-              <p>{homeCare.blurb}</p>
-              {actions(homeCare, 'doc-actions-hero')}
-            </div>
-          </div>
-        </section>
-      )}
+      <div className="doc-section-head">
+        <h2>Policy &amp; procedure manuals</h2>
+        <span>One manual per licence category — Home Health (skilled) and Home Care (non-skilled).</span>
+      </div>
+      <div className="doc-grid">{[main, homeCare].filter(Boolean).map(card)}</div>
 
       <div className="doc-section-head">
         <h2>Patient forms</h2>
