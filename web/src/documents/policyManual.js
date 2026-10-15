@@ -7,7 +7,7 @@ import { WORKSHEETS, manualInsert } from './forms/policyWorksheets.js'
 import POSITIONS from './policy/positions.js'
 import TOC_PAGES from './policy/pages.js'
 
-export const title = 'Home Health Policy and Procedure Manual'
+export const title = 'Skilled Nursing Medical Home Health Policy and Manual'
 
 export const defaults = {
   off_president: 'Rose Mbote', off_admin: 'Eric Njoroge', off_alt_admin: 'Eric Njoroge', off_docs: 'Rose Mbote',
@@ -71,7 +71,7 @@ export function renderWithBody(body, data = {}, opts = {}) {
     `<div class="te l${lvl}"><span class="tt">${text}</span>${numbered ? `<span class="dots"></span><span class="pg">${pages[id] ?? ''}</span>` : ''}</div>`).join('\n')
   html = html.replace(/(<h([123]) id="(\w+)"[^>]*data-toc="\d"[^>]*>)/g, '$1<span class="pm">§$3§</span>')
   const cover = coverPage({
-    logo, kicker: 'In-Home Services Agency · Home Health', title: 'Home Health Policy and Procedure Manual',
+    logo, kicker: 'In-Home Services Agency · Home Health', title: 'Skilled Nursing Medical Home Health Policy and Manual',
     subtitle: 'Skilled home health services · Chapter 246-335 WAC (Home Health category)',
     meta: `Revised ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
   })

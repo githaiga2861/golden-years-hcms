@@ -4,10 +4,10 @@ import { WORKSHEETS } from './forms/policyWorksheets.js'
 // web/public/documents/ (built by documents-src/build.mjs); MODULES (modules.js)
 // renders each one blank or filled. `section`: main | patient | agency.
 export const DOCUMENTS = [
-  { key: 'policy', section: 'main', title: 'Home Health Policy and Procedure Manual', short: 'Home Health P&P Manual', file: 'home-health-policy-and-procedure-manual.pdf', client: true, fillLabel: 'Fill full form',
+  { key: 'policy', section: 'main', title: 'Skilled Nursing Medical Home Health Policy and Manual', short: 'Skilled Nursing Medical Home Health Manual', file: 'skilled-nursing-medical-home-health-policy-manual.pdf', client: true, fillLabel: 'Fill full form',
     category: 'Home Health · skilled services', wac: 'WAC 246-335-505 to -560',
     blurb: 'Skilled home health services — job descriptions, emergency plans and patient rights. Fill full form completes every blank, worksheets included.' },
-  { key: 'homecare', section: 'manual', title: 'Home Care Policy and Procedure Manual', short: 'Home Care P&P Manual', file: 'home-care-policy-and-procedure-manual.pdf', client: false, fillLabel: 'Fill dates',
+  { key: 'homecare', section: 'manual', title: 'Non-Medical Home Care Policy and Manual', short: 'Non-Medical Home Care Manual', file: 'non-medical-home-care-policy-manual.pdf', client: false, fillLabel: 'Fill dates',
     category: 'Home Care · non-skilled services', wac: 'WAC 246-335-405 to -455',
     blurb: 'Golden Years Home Care WA 2026 policies for non-skilled in-home care — home care aides, homemakers, personnel, client services, records, infection control and safety.' },
   { key: 'admission', section: 'patient', title: 'Patient Admission Packet', short: 'Patient Admission Packet', file: 'patient-admission-packet.pdf', client: true,

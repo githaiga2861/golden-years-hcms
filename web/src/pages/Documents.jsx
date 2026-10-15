@@ -118,13 +118,13 @@ export default function Documents() {
       <HowThisWorks>
         <b>Download</b> gives the ready-made PDF with the current logo, address (614 Harrison St, Suite C, Sumner) and phone (253) 487-7217.
         <b> Print blank</b> opens a clean copy to fill by hand. <b>Fill in</b> opens a step-by-step form — pick a client to fill their name, date of birth,
-        address and contacts automatically — then save it and print. <b>Fill full form</b> on the Home Health manual completes every blank in it, including the worksheets
-        listed under it, which can also be filled one at a time. The agency holds two licence categories, so there are two manuals: <b>Home Health</b> (skilled services) and <b>Home Care</b> (non-skilled services). Saved forms are listed at the bottom to reopen, edit and reprint.
+        address and contacts automatically — then save it and print. <b>Fill full form</b> on the Skilled Nursing Medical Home Health manual completes every blank in it, including the worksheets
+        listed under it, which can also be filled one at a time. The agency holds two licence categories, so there are two manuals: <b>Skilled Nursing Medical Home Health</b> and <b>Non-Medical Home Care</b>. Saved forms are listed at the bottom to reopen, edit and reprint.
       </HowThisWorks>
 
       <div className="doc-section-head">
         <h2>Policy &amp; procedure manuals</h2>
-        <span>One manual per licence category — Home Health (skilled) and Home Care (non-skilled).</span>
+        <span>One manual per licence category — skilled nursing medical home health, and non-medical home care.</span>
       </div>
       <div className="doc-grid">{[main, homeCare].filter(Boolean).map(card)}</div>
 

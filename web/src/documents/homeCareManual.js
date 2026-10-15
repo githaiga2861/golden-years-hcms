@@ -4,7 +4,7 @@ import { fillTokens } from './formkit.js'
 import { coverPage } from './shell.js'
 import TOC_PAGES from './policy/homeCarePages.js'
 
-export const title = 'Home Care Policy and Procedure Manual'
+export const title = 'Non-Medical Home Care Policy and Manual'
 
 export const schema = [
   { t: 'group', title: 'Manual dates', items: [
@@ -21,7 +21,7 @@ export function renderWithBody(body, data = {}, opts = {}) {
     `<div class="te l${lvl}"><span class="tt">${text}</span>${numbered ? `<span class="dots"></span><span class="pg">${pages[id] ?? ''}</span>` : ''}</div>`).join('\n')
   html = html.replace(/(<h([12]) id="(\w+)"[^>]*data-toc="\d"[^>]*>)/g, '$1<span class="pm">§$3§</span>')
   const cover = coverPage({
-    logo, kicker: 'In-Home Services Agency · Home Care', title: 'Home Care Policy and Procedure Manual',
+    logo, kicker: 'In-Home Services Agency · Home Care', title: 'Non-Medical Home Care Policy and Manual',
     subtitle: 'Non-skilled in-home care · Chapter 246-335 WAC (Home Care category)', meta: '2026 Administrative Policies and Procedures',
   })
   return `${cover}\n<section class="toc"><h1>Table of Contents</h1>${toc}</section>\n${html}`

@@ -6,8 +6,8 @@ supervision plan, and six worksheets that also appear inside the manual.
 
 | Document | Source |
 |---|---|
-| Home Health Policy and Procedure Manual | `web/src/documents/policy/manualBody.html` (text) + `policyManual.js` (fill-in form) |
-| Home Care Policy and Procedure Manual | `web/src/documents/policy/homeCareBody.html` + `homeCareManual.js` |
+| Skilled Nursing Medical Home Health Policy and Manual | `web/src/documents/policy/manualBody.html` (text) + `policyManual.js` (fill-in form) |
+| Non-Medical Home Care Policy and Manual | `web/src/documents/policy/homeCareBody.html` + `homeCareManual.js` |
 | Manual worksheets (review log, emergency info, risk, plan evaluation, HVA, business recovery) | `web/src/documents/forms/policyWorksheets.js` |
 | Patient Admission Packet | `web/src/documents/admission.js` + `admission/` |
 | Home Care Assessment / Home Safety / Skilled Nurse's Note / Management plan | `web/src/documents/forms/` |
