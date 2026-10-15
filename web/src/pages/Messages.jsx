@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { fullName } from '../lib/format'
 import { Empty, Modal, Field, HowThisWorks } from '../components/Ui'
 import { useMessageRealtime } from '../lib/useMessageRealtime'
+import AlertsPage from './MessageAlerts'
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 const fmtShort = (d) => {
@@ -12,8 +13,8 @@ const fmtShort = (d) => {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const PAGES = ['conversations', 'group', 'templates']
-const PAGE_LABELS = { conversations: 'Conversations', group: 'Message a Group', templates: 'Templates' }
+const PAGES = ['conversations', 'group', 'alerts', 'templates']
+const PAGE_LABELS = { conversations: 'Conversations', group: 'Message a Group', alerts: 'Alerts', templates: 'Templates' }
 
 export default function Messages() {
   const [page, setPage] = useState('conversations')
@@ -21,7 +22,7 @@ export default function Messages() {
   return (
     <>
       <div className="page-head">
-        <div><h1 className="thread">Messages</h1><div className="sub">Chat with caregivers, message groups, and save reusable templates.</div></div>
+        <div><h1 className="thread">Messages</h1><div className="sub">Chat with caregivers, message groups, send app alerts, and save reusable templates.</div></div>
       </div>
       <HowThisWorks>
         Messages arrive instantly on both sides while devices are online. Under each message you send you'll see
@@ -38,6 +39,7 @@ export default function Messages() {
       </div>
       {page === 'conversations' && <ConversationsPage />}
       {page === 'group' && <MessageGroupPage />}
+      {page === 'alerts' && <AlertsPage />}
       {page === 'templates' && <TemplatesPage />}
     </>
   )

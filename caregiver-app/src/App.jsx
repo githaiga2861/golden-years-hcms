@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { RefreshProvider, useRefresh } from './context/RefreshContext'
 import { UnreadProvider, useUnread } from './context/UnreadContext'
 import { UpdateProvider, useUpdate } from './context/UpdateContext'
+import { AlertsProvider } from './context/AlertsContext'
+import AlertBanner from './components/AlertBanner'
 import { TutorialProvider } from './context/TutorialContext'
 import TutorialOverlay from './components/TutorialOverlay'
 import TutorialPrompt from './components/TutorialPrompt'
@@ -127,6 +129,7 @@ function Frame() {
           <SyncButton />
         </div>
       </header>
+      <AlertBanner />
       <main className="content"><PermissionsGate><Outlet key={tick} /></PermissionsGate></main>
       <nav className="tabbar">
         <NavLink to="/" end data-tutorial="nav-today" className={({ isActive }) => isActive ? 'active' : ''}><span className="ic">{SunIcon}</span>Today</NavLink>
@@ -155,6 +158,7 @@ export default function App() {
     <AuthProvider>
       <UnreadProvider>
       <UpdateProvider>
+      <AlertsProvider>
       <RefreshProvider>
         <BrowserRouter>
           <TutorialProvider>
@@ -174,6 +178,7 @@ export default function App() {
           </TutorialProvider>
         </BrowserRouter>
       </RefreshProvider>
+      </AlertsProvider>
       </UpdateProvider>
       </UnreadProvider>
     </AuthProvider>

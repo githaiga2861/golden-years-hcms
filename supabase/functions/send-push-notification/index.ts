@@ -3,7 +3,8 @@
 // Sends a push notification to one caregiver's device(s) via Firebase
 // Cloud Messaging, and logs it so the notification bell can show it.
 // Called by Database Webhooks (new message, new update, new shift) and
-// by the Android build workflow (new app version).
+// by the Android build workflow (new app version), and by office staff
+// sending alerts from Messages → Alerts (authorized by their own login).
 //
 // Deploy with: supabase functions deploy send-push-notification
 // Requires these secrets (set via `supabase secrets set`):
@@ -52,8 +53,26 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    // Two ways in: the shared webhook secret (database webhooks, build
+    // workflow), or a signed-in office user (Messages → Alerts).
     const secret = req.headers.get('x-webhook-secret')
-    if (secret !== Deno.env.get('PUSH_WEBHOOK_SECRET')) {
+    let authorized = !!secret && secret === Deno.env.get('PUSH_WEBHOOK_SECRET')
+    if (!authorized) {
+      const authHeader = req.headers.get('Authorization')
+      if (authHeader) {
+        const callerClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          { global: { headers: { Authorization: authHeader } } }
+        )
+        const { data: { user } } = await callerClient.auth.getUser()
+        if (user) {
+          const { data: prof } = await callerClient.from('profiles').select('role').eq('id', user.id).single()
+          authorized = !!prof && ['admin', 'scheduler', 'coordinator'].includes(prof.role)
+        }
+      }
+    }
+    if (!authorized) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }

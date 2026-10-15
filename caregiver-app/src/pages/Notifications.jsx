@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useUnread } from '../context/UnreadContext'
 import { useUpdate } from '../context/UpdateContext'
+import { useAlerts } from '../context/AlertsContext'
+import { AlertCard } from '../components/AlertBanner'
 import { useTutorial } from '../context/TutorialContext'
 import { DEMO_UPDATES } from '../lib/tutorialDemoData'
 
@@ -22,6 +24,7 @@ export default function Notifications() {
   const { caregiver } = useAuth()
   const { recheckUpdates } = useUnread()
   const { available: updateAvailable, apkUrl } = useUpdate()
+  const { alerts, canAskPermission, enableNotifications } = useAlerts()
   const tutorial = useTutorial()
   const [items, setItems] = useState([])
 
@@ -126,7 +129,16 @@ export default function Notifications() {
           <button className="btn btn-quiet" onClick={markAllRead}>Mark all read</button>
         )}
       </div>
-      <p className="muted" style={{ marginTop: 0 }}>Care plan changes and schedule updates.</p>
+      <p className="muted" style={{ marginTop: 0 }}>Office alerts, care plan changes and schedule updates.</p>
+
+      {!tutorial?.running && alerts.map((a) => <AlertCard key={a.id} alert={a} />)}
+
+      {canAskPermission && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '.7rem' }}>
+          <p style={{ margin: 0, flex: 1, fontSize: '.88rem' }}>Get a pop-up on this device when the office sends you an alert.</p>
+          <button className="btn btn-outline" onClick={enableNotifications}>Turn on</button>
+        </div>
+      )}
 
       {updateAvailable && (
         <div className="card" style={{ background: 'var(--paper)', border: '1.5px solid var(--gold)', marginBottom: '.8rem' }}>

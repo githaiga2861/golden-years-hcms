@@ -2,7 +2,7 @@
    Strategy: precache the app shell; network-first for everything else.
    Clock in/out made offline works via the in-app queue (src/lib/offline.js),
    not the service worker, so it also survives app restarts. */
-const CACHE = 'gy-care-v1'
+const CACHE = 'gy-care-v2'
 const SHELL = ['/', '/index.html', '/manifest.webmanifest']
 
 self.addEventListener('install', (e) => {
@@ -28,5 +28,19 @@ self.addEventListener('fetch', (e) => {
         return res
       })
       .catch(() => caches.match(e.request).then((m) => m || caches.match('/index.html')))
+  )
+})
+
+// Tapping an office alert notification opens (or focuses) the app on Updates.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close()
+  const target = (e.notification.data && e.notification.data.url) || '/updates'
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if ('focus' in w) { w.navigate(target).catch(() => {}); return w.focus() }
+      }
+      return self.clients.openWindow(target)
+    })
   )
 })

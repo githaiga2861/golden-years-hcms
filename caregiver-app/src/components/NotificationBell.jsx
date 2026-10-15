@@ -11,7 +11,7 @@ const fmtWhen = (d) => {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const KIND_LABEL = { message: 'Message', update: 'Update', visit: 'Visit', app_update: 'App Update' }
+const KIND_LABEL = { message: 'Message', update: 'Update', visit: 'Visit', app_update: 'App Update', alert: 'Alert' }
 
 // Where tapping each kind of notification should take you. The matching
 // screen highlights what you were sent there for.
@@ -20,6 +20,7 @@ const DESTINATION = {
   update: { path: '/updates', state: { highlight: 'updates' } },
   app_update: { path: '/profile', state: { highlightUpdate: true } },
   visit: { path: '/', state: {} },
+  alert: { path: '/updates', state: { highlight: 'updates' } },
 }
 
 export default function NotificationBell() {
@@ -100,7 +101,7 @@ export default function NotificationBell() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
             {items.length === 0 && (
-              <div className="empty"><h3>No notifications yet</h3><p>New messages, updates, visits, and app updates will show up here.</p></div>
+              <div className="empty"><h3>No notifications yet</h3><p>New messages, alerts, updates, visits, and app updates will show up here.</p></div>
             )}
             {items.map((i) => (
               <div key={i.id} className="card" onClick={() => openItem(i)}
