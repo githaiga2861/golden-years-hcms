@@ -350,3 +350,14 @@ table.data tr.click:hover { background: var(--blue-soft); }
 .doc-row-title { display: flex; align-items: center; gap: .55rem; }
 .doc-row-icon { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--gold-soft); color: #8a6d12; flex-shrink: 0; }
 @media (max-width: 720px) { .doc-hero-body { flex-direction: column; } .doc-actions.doc-actions-hero { grid-template-columns: 1fr; } .docs-stats { display: none; } }
+
+.doc-hero-alt { background: linear-gradient(135deg, #fffdf6 0%, #fff8e3 100%); color: var(--ink); border: 1px solid #e6d394;
+  box-shadow: var(--shadow); margin-top: -1rem; }
+.doc-hero-alt .doc-hero-icon { background: #fff; border-color: #e6d394; color: #a8861c; }
+.doc-hero-alt .doc-hero-kicker { color: #a8861c; }
+.doc-hero-alt h2 { color: var(--blue-ink); font-size: 1.35rem; }
+.doc-hero-alt p { color: var(--muted); }
+.doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-dl { background: var(--blue); color: #fff; }
+.doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-print { color: var(--blue); border-color: var(--blue); }
+.doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-print:hover { background: var(--blue-soft); }
+.doc-hero-alt .doc-actions.doc-actions-hero .doc-btn-fill { background: var(--gold); box-shadow: none; }

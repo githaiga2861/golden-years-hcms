@@ -17,6 +17,7 @@ import { wrapDocument } from '../web/src/documents/shell.js'
 import { DOCUMENTS } from '../web/src/documents/registry.js'
 import { MODULES } from '../web/src/documents/modules.js'
 import { renderWithBody } from '../web/src/documents/policyManual.js'
+import { renderWithBody as renderHomeCare } from '../web/src/documents/homeCareManual.js'
 import COUNTS from '../web/src/documents/pageCounts.js'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -56,6 +57,9 @@ async function build(browser, doc) {
   if (doc.key === 'policy') {
     const body = readFileSync(join(DOCS_SRC, 'policy/manualBody.html'), 'utf8')
     make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: renderWithBody(body, {}, { logo, pages }) })
+  } else if (doc.key === 'homecare') {
+    const body = readFileSync(join(DOCS_SRC, 'policy/homeCareBody.html'), 'utf8')
+    make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: renderHomeCare(body, {}, { logo, pages }) })
   } else {
     const mod = MODULES[doc.key]
     make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: mod.render({}, { logo, blank: true, pages }) })
@@ -65,8 +69,8 @@ async function build(browser, doc) {
   if (Object.keys(pages).length) {
     await toPdf(browser, make(pages), file)
     total = scan(file).total
-    if (doc.key === 'policy') {
-      writeFileSync(join(DOCS_SRC, 'policy/pages.js'), `// Table-of-contents page numbers, written by documents-src/build.mjs.\nexport default ${JSON.stringify(pages)}\n`)
+    if (doc.key === 'policy' || doc.key === 'homecare') {
+      writeFileSync(join(DOCS_SRC, doc.key === 'policy' ? 'policy/pages.js' : 'policy/homeCarePages.js'), `// Table-of-contents page numbers, written by documents-src/build.mjs.\nexport default ${JSON.stringify(pages)}\n`)
     }
   }
   COUNTS[doc.key] = total

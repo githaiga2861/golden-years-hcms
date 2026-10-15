@@ -60,6 +60,7 @@ export default function Documents() {
   }
 
   const main = DOCUMENTS.find((d) => d.section === 'main')
+  const homeCare = DOCUMENTS.find((d) => d.section === 'manual')
   const patient = DOCUMENTS.filter((d) => d.section === 'patient')
   const agency = DOCUMENTS.filter((d) => d.section === 'agency')
   const fromManual = DOCUMENTS.filter((d) => d.fromManual)
@@ -116,8 +117,8 @@ export default function Documents() {
       <HowThisWorks>
         <b>Download</b> gives the ready-made PDF with the current logo, address (614 Harrison St, Suite C, Sumner) and phone (253) 487-7217.
         <b> Print blank</b> opens a clean copy to fill by hand. <b>Fill in</b> opens a step-by-step form — pick a client to fill their name, date of birth,
-        address and contacts automatically — then save it and print. <b>Fill full form</b> on the manual completes every blank in it, including the worksheets
-        listed under it, which can also be filled one at a time. Saved forms are listed at the bottom to reopen, edit and reprint.
+        address and contacts automatically — then save it and print. <b>Fill full form</b> on the Home Health manual completes every blank in it, including the worksheets
+        listed under it, which can also be filled one at a time. The agency holds two licence categories, so there are two manuals: <b>Home Health</b> (skilled services) and <b>Home Care</b> (non-skilled services). Saved forms are listed at the bottom to reopen, edit and reprint.
       </HowThisWorks>
 
       {main && (
@@ -126,7 +127,7 @@ export default function Documents() {
           <div className="doc-hero-body">
             <div className="doc-hero-icon"><Icon name="book" size={30} /></div>
             <div className="doc-hero-text">
-              <div className="doc-hero-kicker">Main document{PAGES.policy ? ` · ${pagesLabel('policy')}` : ''}</div>
+              <div className="doc-hero-kicker">Main document · {main.category}{PAGES.policy ? ` · ${pagesLabel('policy')}` : ''}</div>
               <h2>{main.title}</h2>
               <p>{main.blurb}</p>
               <div className="doc-hero-includes">
@@ -138,6 +139,20 @@ export default function Documents() {
                 ))}
               </div>
               {actions(main, 'doc-actions-hero')}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {homeCare && (
+        <section className="doc-hero doc-hero-alt">
+          <div className="doc-hero-body">
+            <div className="doc-hero-icon"><Icon name="book" size={30} /></div>
+            <div className="doc-hero-text">
+              <div className="doc-hero-kicker">{homeCare.category}{PAGES.homecare ? ` · ${pagesLabel('homecare')}` : ''} · {homeCare.wac}</div>
+              <h2>{homeCare.title}</h2>
+              <p>{homeCare.blurb}</p>
+              {actions(homeCare, 'doc-actions-hero')}
             </div>
           </div>
         </section>

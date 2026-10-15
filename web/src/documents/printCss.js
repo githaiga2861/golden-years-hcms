@@ -84,6 +84,11 @@ table.ynq td.c, table.ynq th.c { text-align: center; }
 .cbs[class*="cols"] .cb { margin-right: 4pt; }
 .dense { font-size: 8.2pt; line-height: 1.32; } .dense .cb { font-size: 7.7pt; margin-bottom: 0.5pt; } .dense .lines .ln { min-height: 14pt; } .dense table.form td { padding: 2pt 4pt; } .dense .sh2 { font-size: 8.9pt; margin: 6pt 0 3pt; }
 .dense .fld .lb { font-size: 7.9pt; } .dense .row { margin-bottom: 4pt; } .dense .form-section > .sh { margin: 7pt 0 4pt; }
+.orgchart { display: flex; flex-direction: column; align-items: center; margin: 14pt 0 18pt; }
+.oc-box { border: 1.2pt solid #0b5394; border-radius: 6pt; padding: 9pt 18pt; min-width: 3.2in; text-align: center; font-weight: 700; color: #0a2540; background: #eaf1f8; }
+.oc-top { background: #0b5394; color: #fff; }
+.oc-leaf { background: #fff8e3; border-color: #c9a227; }
+.oc-line { width: 1.4pt; height: 16pt; background: #0b5394; }
 .cards4 { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; margin: 8pt 0 12pt; }
 .fcard { border: 0.8pt solid #d9c57f; border-radius: 5pt; padding: 8pt 10pt; break-inside: avoid; background: #fffdf6; }
 .fcard h4 { margin: 0 0 3pt; font-size: 11pt; color: #0b5394; }

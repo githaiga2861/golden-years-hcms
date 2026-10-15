@@ -4,8 +4,12 @@ import { WORKSHEETS } from './forms/policyWorksheets.js'
 // web/public/documents/ (built by documents-src/build.mjs); MODULES (modules.js)
 // renders each one blank or filled. `section`: main | patient | agency.
 export const DOCUMENTS = [
-  { key: 'policy', section: 'main', title: 'Policy and Procedure Manual', short: 'Policy & Procedure Manual', file: 'policy-and-procedure-manual.pdf', client: true, fillLabel: 'Fill full form',
-    blurb: 'The complete WAC 246-335 policy and procedure manual — job descriptions, emergency plans, checklists and the patient bill of rights. Filling it completes every blank in the manual, including its worksheets.' },
+  { key: 'policy', section: 'main', title: 'Home Health Policy and Procedure Manual', short: 'Home Health P&P Manual', file: 'home-health-policy-and-procedure-manual.pdf', client: true, fillLabel: 'Fill full form',
+    category: 'Home Health · skilled services', wac: 'WAC 246-335-505 to -560',
+    blurb: 'Policies for skilled home health services (nursing, therapy, home health aides) — job descriptions, emergency plans, checklists and the patient bill of rights. Filling it completes every blank in the manual, including its worksheets.' },
+  { key: 'homecare', section: 'manual', title: 'Home Care Policy and Procedure Manual', short: 'Home Care P&P Manual', file: 'home-care-policy-and-procedure-manual.pdf', client: false, fillLabel: 'Fill dates',
+    category: 'Home Care · non-skilled services', wac: 'WAC 246-335-405 to -455',
+    blurb: 'Golden Years Home Care WA 2026 administrative policies for non-skilled in-home care — home care aides, homemakers, personnel, client services, records, infection control and safety.' },
   { key: 'admission', section: 'patient', title: 'Patient Admission Packet', short: 'Patient Admission Packet', file: 'patient-admission-packet.pdf', client: true,
     blurb: 'Patient rights (English & Spanish), consent, assessments, physician orders, nursing and aide care plans, discharge and every other admission form.' },
   { key: 'assessment', section: 'patient', title: 'Home Care Assessment Form', short: 'Home Care Assessment', file: 'home-care-assessment-form.pdf', client: true,
