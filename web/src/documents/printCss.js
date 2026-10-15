@@ -80,6 +80,10 @@ table.dodont th:first-child { background: #e3f2ec; color: #1f7a5c; }
 table.dodont th:last-child { background: #f9e8e4; color: #b3402a; }
 table.yn th.c, table.yn td:nth-child(n+2) { width: 34pt; text-align: center; }
 table.hva th, table.hva td { font-size: 7.6pt; padding: 2pt 3pt; } table.hva th.c { text-align: center; } table.hva td { height: 16pt; }
+table.ynq td.c, table.ynq th.c { text-align: center; }
+.cbs[class*="cols"] .cb { margin-right: 4pt; }
+.dense { font-size: 8.2pt; line-height: 1.32; } .dense .cb { font-size: 7.7pt; margin-bottom: 0.5pt; } .dense .lines .ln { min-height: 14pt; } .dense table.form td { padding: 2pt 4pt; } .dense .sh2 { font-size: 8.9pt; margin: 6pt 0 3pt; }
+.dense .fld .lb { font-size: 7.9pt; } .dense .row { margin-bottom: 4pt; } .dense .form-section > .sh { margin: 7pt 0 4pt; }
 .cards4 { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; margin: 8pt 0 12pt; }
 .fcard { border: 0.8pt solid #d9c57f; border-radius: 5pt; padding: 8pt 10pt; break-inside: avoid; background: #fffdf6; }
 .fcard h4 { margin: 0 0 3pt; font-size: 11pt; color: #0b5394; }
@@ -92,7 +96,7 @@ table.hva th, table.hva td { font-size: 7.6pt; padding: 2pt 3pt; } table.hva th.
 .doc-title .sub { color: #5b6d82; font-size: 8.8pt; margin-top: 2pt; }
 .doc-title::after { content: ""; display: block; width: 1.2in; height: 1.6pt; background: #c9a227; margin: 7pt auto 0; }
 .form-section { break-inside: avoid; margin: 0 0 10pt; }
-.form-section > .sh { background: #0b5394; color: #fff; font-weight: 700; font-size: 8.8pt; letter-spacing: .06em; text-transform: uppercase; padding: 3.5pt 7pt; margin: 10pt 0 6pt; break-after: avoid; }
+.form-section > .sh { background: #0b5394; color: #fff; font-weight: 700; font-size: 8.8pt; letter-spacing: .04em; padding: 3.5pt 7pt; margin: 10pt 0 6pt; break-after: avoid; }
 .sh2 { font-weight: 700; color: #0b5394; font-size: 9.6pt; margin: 9pt 0 4pt; border-bottom: 0.7pt solid #d9c57f; padding-bottom: 2pt; break-after: avoid; }
 .row { display: flex; gap: 12pt; margin: 0 0 6pt; align-items: flex-end; }
 .fld { flex: 1; display: flex; align-items: flex-end; gap: 5pt; min-width: 0; }
