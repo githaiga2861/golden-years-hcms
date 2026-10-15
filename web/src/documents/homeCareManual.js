@@ -3,6 +3,7 @@
 import { fillTokens } from './formkit.js'
 import { coverPage } from './shell.js'
 import TOC_PAGES from './policy/homeCarePages.js'
+import { render as progressNotes } from './forms/progressNotes.js'
 
 export const title = 'Non-Medical Home Care Policy and Manual'
 
@@ -15,6 +16,7 @@ export const schema = [
 export function renderWithBody(body, data = {}, opts = {}) {
   const { logo, pages = TOC_PAGES } = opts
   let html = fillTokens(body.replace(/^\s*<!--[\s\S]*?-->/, ''), data)
+  html += `\n${progressNotes({}, { tocId: 'hcpn', tocTitle: 'APPENDIX — CAREGIVER PROGRESS NOTES', breakFirst: true })}`
   const heads = [...html.matchAll(/<h([12]) id="(\w+)"[^>]*data-toc="(\d)"[^>]*>(.*?)<\/h\1>/g)]
   const numbered = Object.keys(pages).length > 0
   const toc = heads.map(([, , id, lvl, text]) =>
@@ -22,7 +24,7 @@ export function renderWithBody(body, data = {}, opts = {}) {
   html = html.replace(/(<h([12]) id="(\w+)"[^>]*data-toc="\d"[^>]*>)/g, '$1<span class="pm">§$3§</span>')
   const cover = coverPage({
     logo, kicker: 'In-Home Services Agency · Home Care', title: 'Non-Medical Home Care Policy and Manual',
-    subtitle: 'Non-skilled in-home care · Chapter 246-335 WAC (Home Care category)', meta: '2026 Administrative Policies and Procedures',
+    subtitle: 'Non-skilled in-home care · Chapter 246-335 WAC (Home Care category)', meta: '2026 Administrative Policies and Procedures · Updated 09/16/2026',
   })
   return `${cover}\n<section class="toc"><h1>Table of Contents</h1>${toc}</section>\n${html}`
 }

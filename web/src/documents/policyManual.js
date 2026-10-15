@@ -6,6 +6,7 @@ import { coverPage } from './shell.js'
 import { WORKSHEETS, manualInsert } from './forms/policyWorksheets.js'
 import POSITIONS from './policy/positions.js'
 import TOC_PAGES from './policy/pages.js'
+import { render as progressNotes } from './forms/progressNotes.js'
 
 export const title = 'Skilled Nursing Medical Home Health Policy and Manual'
 
@@ -65,6 +66,7 @@ export function renderWithBody(body, data = {}, opts = {}) {
   let html = body.replace(/^\s*<!--[\s\S]*?-->/, '')
   html = html.replace(/<!--FORM:(\w+)-->/g, (_, k) => manualInsert(k, d))
   html = fillTokens(html, d)
+  html += `\n${progressNotes({}, { tocId: 'hpn', tocTitle: 'APPENDIX — CAREGIVER PROGRESS NOTES', breakFirst: true })}`
   const heads = [...html.matchAll(/<h([123]) id="(\w+)"[^>]*data-toc="(\d)"[^>]*>(.*?)<\/h\1>/g)]
   const numbered = Object.keys(pages).length > 0
   const toc = heads.map(([, , id, lvl, text]) =>

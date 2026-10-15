@@ -126,6 +126,10 @@ table.form td.v { font-family: "Segoe Print", "Bradley Hand", Inter, Arial, sans
 .copy-tag { display: inline-block; font-size: 7.6pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #a8861c; border: 0.7pt solid #d9c57f; border-radius: 99pt; padding: 1pt 7pt; }
 .page-break { break-before: page; }
 .keep { break-inside: avoid; }
+.callout { border-left: 3pt solid #c9a227; background: #fbf7ea; padding: 6pt 10pt; margin: 8pt 0 10pt; break-inside: avoid; }
+table.jd-end { margin-top: 0; }
+table:has(+ table.jd-end) { margin-bottom: 0; }
+table.keep { break-inside: avoid; }
 .muted { color: #5b6d82; }
 .center { text-align: center; }
 .small { font-size: 8.2pt; }
