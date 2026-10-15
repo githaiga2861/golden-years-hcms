@@ -173,6 +173,10 @@ export function fieldsOf(items) {
   })
   walk(items)
   if (cur.fields.length) sections.push(cur)
+  // drop headings with no fields beneath them
+  sections.forEach((sec) => {
+    sec.fields = sec.fields.filter((f, i, arr) => !f.heading || (arr[i + 1] && !arr[i + 1].heading))
+  })
   return sections.filter((s) => s.fields.some((f) => !f.heading))
 }
 

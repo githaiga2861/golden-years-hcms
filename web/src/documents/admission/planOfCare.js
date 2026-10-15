@@ -1,0 +1,68 @@
+import { taskGrid } from './aide.js'
+
+// Plan of Care. In the original the Complaint Log sat between the care plan
+// and its signature page; the signatures now follow the plan directly and the
+// Complaint Log is its own form.
+export const planOfCareGroup = {
+  t: 'group', title: 'Plan of Care', items: [
+    { t: 'title', text: 'Plan of Care' },
+    { t: 'sh', text: '1. Client information' },
+    { t: 'row', f: [['patient_name', 'Client name:'], ['dob', 'DOB:', 'w2', 'date']] },
+    { t: 'cols', widths: '1fr 2fr', cols: [[{ t: 'checks', k: 'sex', opts: ['Male', 'Female'], single: true, label: 'Sex' }], [{ t: 'row', f: [['mr', 'Record #:'], ['soc_date', 'SOC date:', 'w2', 'date']] }]] },
+    { t: 'row', f: [['address', 'Client address:'], ['phone', 'Client phone number:', 'w3']] },
+    { t: 'row', f: [['lives_with', 'Lives with:'], ['lives_with_rel', 'Relationship to client:', 'w3']] },
+    { t: 'row', f: [['emergency_contact', 'Emergency contact (name, relationship, phone):'], ['evac_plan', 'Evacuation plan:', 'w3']] },
+    { t: 'checks', k: 'priority_level', label: 'Priority level', opts: ['I', 'II', 'III', 'IV'], single: true },
+    { t: 'row', f: [['diagnosis', 'Diagnosis:']] },
+    { t: 'row', f: [['allergies', 'Allergies:'], ['diet', 'Diet (specify):']] },
+    { t: 'row', f: [['nutrition_needs', 'Nutritional needs:']] },
+    { t: 'row', f: [['food_allergies', 'Food allergies:']] },
+    { t: 'sh', text: '2. Assistive devices' },
+    { t: 'checks', k: 'devices', cols: 4, opts: ['Hearing aids — R', 'Hearing aids — L', 'Glasses', 'Dentures', 'Cane', 'Walker', 'Wheelchair', 'Crutches', 'Hospital bed', 'Side rails', 'Gait belt', 'Slide board', 'Hoyer lift', 'Shower chair', 'Bedside commode', '3-in-1', 'Ostomy equipment', 'Prosthetic device', 'Splint', 'Cast', 'Brace', 'TED hose', 'Other: {{devices_other|Other device|0.8in}}'] },
+    { t: 'checks', k: 'psychosocial', label: 'Psychosocial', opts: ['Alert', 'Oriented', 'Confused', 'Forgetful', 'Wanders'] },
+    { t: 'checks', k: 'functional', label: 'Functional limitations', cols: 3, opts: ['Hard of hearing', 'Legally blind', 'Non-verbal communication', 'Amputee (site): {{amputee_site|Amputee site|0.8in}}', 'Paralyzed (site): {{paralyzed_site|Paralyzed site|0.8in}}', 'Incontinence — bladder', 'Incontinence — bowel', 'Other: {{functional_other|Other limitation|0.8in}}'] },
+    { t: 'row', f: [['language', 'Primary language:', 'w3']] },
+    { t: 'row', f: [['hha_discipline', 'Service to be provided:'], ['hha_duration', 'Duration of services:']] },
+    { t: 'row', f: [['hha_frequency', 'Frequency of visits:']] },
+    { t: 'row', f: [['hha_requests', 'Special requests from client or family:']] },
+    { t: 'row', f: [['hha_supervisor', 'Supervisor name and number:']] },
+    { t: 'row', f: [['hha_superv_freq', 'Frequency of supervisory visits:']] },
+    { t: 'sh', text: '3. Level of medication assistance' },
+    { t: 'checks', k: 'pc_med_level', cols: 1, single: true, opts: ['No assistance required', 'Medication reminders — caregivers will remind the patient to take medications at scheduled times', 'Assistance with self-administered medications — caregiver will assist in opening containers, reading labels, and ensuring the correct dosage is taken', "Medication administration (only licensed staff) — nurse will administer per physician's orders", 'Other: {{pc_med_other|Other medication assistance|2.4in}}'] },
+    { t: 'row', f: [['pc_meds_reviewed_by', 'Medications reviewed by (nurse/agency representative):']] },
+    { t: 'checks', k: 'pc_med_understanding', label: 'Patient understanding of medication use', opts: ['Full', 'Needs reinforcement', 'Did not understand'], single: true },
+    { t: 'yn', k: 'pc_med_followup', label: 'Follow-up needed?' },
+    { t: 'sh', text: '4. Patient and family education needs' },
+    { t: 'checks', k: 'pc_edu_topics', label: 'Education topics covered (check all that apply)', cols: 3, opts: ['Condition management', 'Medication education', 'Infection control', 'Home safety', 'Nutrition', 'Mobility assistance', 'Emergency preparedness', 'Use of medical equipment', 'Other: {{pc_edu_other|Other education topic|0.8in}}'] },
+    { t: 'row', f: [['pc_edu_by', 'Education provided by (nurse/agency representative):']] },
+    { t: 'checks', k: 'pc_edu_understanding', label: 'Patient/family understanding', opts: ['Full', 'Needs reinforcement', 'Did not understand'], single: true },
+    { t: 'yn', k: 'pc_edu_followup', label: 'Follow-up education needed?' },
+    { t: 'checks', k: 'hha_goals', label: 'Goals for care', cols: 1, opts: ['Patient personal care/ADLs will be provided at an optimum level of personal hygiene.', 'Patient will receive assistance with personal care/ADLs to maintain an optimum level of personal hygiene.', 'Patient will become independent in personal care/ADLs within {{hha_goal_weeks|Weeks/months to independence|0.7in}} wk/mo.', 'Patient will be maintained in the home setting.', 'Patient will have home cleanliness maintained.', 'Other: {{hha_goal_other|Other goal|2.5in}}'] },
+    { t: 'sh', text: '5. Bathing choice and care plan review' },
+    { t: 'yn', k: 'hha_bath_choice', label: 'The admission assessment has defined that the client is cognizant and functionally able to determine what kind of bath he/she wants:' },
+    { t: 'lines', k: 'hha_report', label: 'Report the following changes to the supervisor (list):', n: 2 },
+    { t: 'yn', k: 'hha_pt_participated', label: 'The client, or legal representative, participated in development of the care plan:' },
+    { t: 'row', f: [['hha_pt_participated_why', 'Explain why if no:']] },
+    { t: 'yn', k: 'hha_discussed', label: 'The care plan was discussed with the staff that will be providing care:' },
+    { t: 'row', f: [['hha_discussed_why', 'Explain why if no:']] },
+    { t: 'sh', text: '6. Record of services provided to the client — days to be performed' },
+    taskGrid('pc_tasks', 'plan'),
+    { t: 'sh', text: 'Care plan review and approval' },
+    { t: 'sig', f: [['hha_completed_by', 'Care plan completed by (signature/title)'], ['hha_completed_date', 'Date', 'date']] },
+    { t: 'sig', f: [['hha_reviewed_1', 'Care plan reviewed by (signature/title)'], ['hha_reviewed_1_date', 'Date', 'date']] },
+    { t: 'note', html: '<b>Signature below is an acknowledgment that the caregiver, supervisor and client reviewed the plan of care prior to providing services:</b>' },
+    { t: 'sig', f: [['pc_sig_caregiver', 'Signature of caregiver'], ['pc_sig_caregiver_date', 'Date', 'date']] },
+    { t: 'sig', f: [['pc_sig_supervisor', 'Signature of supervisor'], ['pc_sig_supervisor_date', 'Date', 'date']] },
+    { t: 'sig', f: [['pc_sig_client', 'Signature of client'], ['pc_sig_client_date', 'Date', 'date']] },
+    { t: 'sh2', text: 'Written approval by the client, designated family member or legal representative' },
+    { t: 'row', f: [['pc_approver_name', 'Print name:'], ['pc_approver_rel', 'Relationship to client:']] },
+    { t: 'sig', f: [['pc_approver_sig', 'Signature'], ['pc_approver_date', 'Date', 'date']] },
+  ],
+}
+
+export const complaintLogGroup = {
+  t: 'group', title: 'Complaint Log', items: [
+    { t: 'title', text: 'Complaint Log' },
+    { t: 'table', k: 'complaints', head: ['Date recorded', 'Date of complaint', 'Patient name', 'Employee name', 'Explanation of complaint', 'Resolution / action'], widths: ['11%', '11%', '15%', '14%', '', '22%'], rows: Array.from({ length: 10 }, () => [null, null, null, null, null, null]), rowH: 44 },
+  ],
+}

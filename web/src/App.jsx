@@ -16,6 +16,7 @@ import Messages from './pages/Messages'
 import Team from './pages/Team'
 import Emails from './pages/Emails'
 import Settings from './pages/Settings'
+import Documents from './pages/Documents'
 
 function Protected({ children }) {
   const { session, profile, loading, isOffice } = useAuth()
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="messages" element={<Messages />} />
             <Route path="team" element={<Team />} />
             <Route path="emails" element={<Emails />} />
+            <Route path="documents" element={<Documents />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

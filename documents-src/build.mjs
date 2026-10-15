@@ -72,11 +72,25 @@ async function buildPolicy(browser) {
 }
 
 // ---------------- Forms (blank) ----------------
+function pagesOf(file) {
+  const pages = {}
+  try {
+    const text = execFileSync('pdftotext', ['-enc', 'UTF-8', file, '-'], { maxBuffer: 1 << 28 }).toString('utf8')
+    text.split('\f').forEach((pg, i) => {
+      for (const m of pg.matchAll(/§(\w+)§/g)) if (!pages[m[1]]) pages[m[1]] = i + 1
+    })
+  } catch { console.warn('pdftotext not available — no page numbers in contents.') }
+  return pages
+}
+
 async function buildForm(browser, doc) {
   const mod = await import(`../web/src/documents/${doc.module}.js`)
-  const html = wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: mod.render({}, { logo, blank: true }) })
-  await toPdf(browser, html, join(OUT, doc.file))
-  console.log('✓', doc.file)
+  const file = join(OUT, doc.file)
+  const make = (pages) => wrapDocument({ title: doc.title, logo, docTitle: doc.short, body: mod.render({}, { logo, blank: true, pages }) })
+  await toPdf(browser, make({}), file)
+  const pages = pagesOf(file)
+  if (Object.keys(pages).length) await toPdf(browser, make(pages), file)
+  console.log('✓', doc.file, Object.keys(pages).length ? `(${Object.keys(pages).length} contents entries)` : '')
 }
 
 const only = process.argv[2]
