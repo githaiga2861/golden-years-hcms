@@ -21,10 +21,12 @@ const I = {
   shield: 'M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z',
   list: 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
   alert: 'M12 3l9.5 17h-19zM12 10v4M12 17h.01',
+  pill: 'M10.5 20.5a5 5 0 0 1-7-7l7-7a5 5 0 0 1 7 7zM7 10l7 7',
+  phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
   pen: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4M14 20h6',
   doc: 'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6',
 }
-const ICON = { policy: 'book', admission: 'clip', assessment: 'heart', safety: 'home', nurse: 'pulse', progress: 'pen', homecare: 'book', management: 'shield', ws_review: 'list', ws_emergency: 'alert', ws_risk: 'alert', ws_planeval: 'list', ws_hva: 'alert', ws_recovery: 'shield' }
+const ICON = { policy: 'book', admission: 'clip', assessment: 'heart', safety: 'home', nurse: 'pulse', progress: 'pen', medication: 'pill', physician: 'phone', homecare: 'book', management: 'shield', ws_review: 'list', ws_emergency: 'alert', ws_risk: 'alert', ws_planeval: 'list', ws_hva: 'alert', ws_recovery: 'shield' }
 const Icon = ({ name, size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={I[name] || I.doc} /></svg>
 )

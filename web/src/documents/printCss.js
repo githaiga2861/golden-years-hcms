@@ -123,6 +123,10 @@ table.ynq td.c, table.ynq th.c { text-align: center; }
 table.form td, table.form th { font-size: 8.5pt; padding: 3pt 5pt; }
 table.form td.v { font-family: "Segoe Print", "Bradley Hand", Inter, Arial, sans-serif; color: #0a2540; }
 .note { font-size: 8.2pt; color: #5b6d82; }
+sup.fn { font-size: 6.4pt; color: #0b5394; font-weight: 700; margin-left: 1pt; }
+.fnotes { margin-top: 14pt; border-top: 0.8pt solid #c9a227; padding-top: 5pt; font-size: 7.6pt; color: #4a5a6c; break-inside: avoid; }
+.fnotes-h { font-weight: 700; color: #0b5394; letter-spacing: .06em; text-transform: uppercase; font-size: 7.4pt; margin-bottom: 2pt; }
+.fnotes ol { margin: 0; padding-left: 14pt; } .fnotes li { margin: 0 0 1pt; }
 .copy-tag { display: inline-block; font-size: 7.6pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #a8861c; border: 0.7pt solid #d9c57f; border-radius: 99pt; padding: 1pt 7pt; }
 .page-break { break-before: page; }
 .keep { break-inside: avoid; }

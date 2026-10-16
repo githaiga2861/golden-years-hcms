@@ -20,8 +20,12 @@ export const DOCUMENTS = [
     blurb: 'Visit note: vitals, body-system assessment, interventions, pain, phlebotomy, wounds and IV nursing.' },
   { key: 'progress', section: 'patient', title: 'Caregiver Progress Notes', short: 'Caregiver Progress Notes', file: 'caregiver-progress-notes.pdf', client: true,
     blurb: 'Visit-by-visit notes for home care aides, homemakers and home health aides — care given, observations, changes in condition, with supervisor review.' },
+  { key: 'medication', section: 'patient', title: 'Medication Profile & Administration Record', short: 'Medication Profile & MAR', file: 'medication-profile-and-mar.pdf', client: true,
+    blurb: 'Current medication list with allergies, physician and pharmacy, plus a monthly administration / assistance record for daily initials.' },
+  { key: 'physician', section: 'patient', title: 'Physician Communication (SBAR)', short: 'Physician Communication', file: 'physician-communication-sbar.pdf', client: true,
+    blurb: 'Nurse-to-doctor report — situation, background, assessment, request — with a physician response section. Print, scan or fax, and file the signed reply.' },
   { key: 'management', section: 'agency', title: 'Management and Supervision of Services', short: 'Management & Supervision Plan', file: 'management-and-supervision-plan.pdf', client: false,
-    blurb: 'How the agency manages and supervises services throughout all requested service areas — WAC 246-335-515(6).' },
+    blurb: 'Survey-ready statement of how the agency has managed and supervised services across King, Pierce, Snohomish, Chelan and Kittitas counties, with supporting procedures — WAC 246-335-515(6).' },
   ...WORKSHEETS.map((w) => ({
     key: `ws_${w.key}`, section: w.client ? 'patient' : 'agency', fromManual: true, title: w.title, short: w.title,
     file: w.pdf, client: w.client, blurb: w.blurb,
