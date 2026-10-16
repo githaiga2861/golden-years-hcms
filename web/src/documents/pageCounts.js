@@ -15,5 +15,6 @@ export default {
  "homecare": 192,
  "progress": 2,
  "medication": 2,
- "physician": 1
+ "physician": 1,
+ "observation": 2
 }

@@ -26,7 +26,7 @@ const I = {
   pen: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4M14 20h6',
   doc: 'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6',
 }
-const ICON = { policy: 'book', admission: 'clip', assessment: 'heart', safety: 'home', nurse: 'pulse', progress: 'pen', medication: 'pill', physician: 'phone', homecare: 'book', management: 'shield', ws_review: 'list', ws_emergency: 'alert', ws_risk: 'alert', ws_planeval: 'list', ws_hva: 'alert', ws_recovery: 'shield' }
+const ICON = { policy: 'book', admission: 'clip', assessment: 'heart', safety: 'home', nurse: 'pulse', progress: 'pen', medication: 'pill', observation: 'pulse', physician: 'phone', homecare: 'book', management: 'shield', ws_review: 'list', ws_emergency: 'alert', ws_risk: 'alert', ws_planeval: 'list', ws_hva: 'alert', ws_recovery: 'shield' }
 const Icon = ({ name, size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={I[name] || I.doc} /></svg>
 )

@@ -8,10 +8,11 @@ import * as homecare from './homeCareManual.js'
 import * as progress from './forms/progressNotes.js'
 import * as medication from './forms/medication.js'
 import * as physician from './forms/physicianComm.js'
+import * as observation from './forms/observation.js'
 import { WORKSHEETS, worksheetModule } from './forms/policyWorksheets.js'
 
 // doc key → { schema, render(data, opts) (may be async), defaults? }
 export const MODULES = {
-  admission, assessment, safety, nurse, progress, medication, physician, management, policy, homecare,
+  admission, assessment, safety, nurse, progress, medication, physician, observation, management, policy, homecare,
   ...Object.fromEntries(WORKSHEETS.map((w) => [`ws_${w.key}`, worksheetModule(w.key)])),
 }

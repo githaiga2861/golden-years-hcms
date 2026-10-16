@@ -22,6 +22,8 @@ export const DOCUMENTS = [
     blurb: 'Visit-by-visit notes for home care aides, homemakers and home health aides — care given, observations, changes in condition, with supervisor review.' },
   { key: 'medication', section: 'patient', title: 'Medication Profile & Administration Record', short: 'Medication Profile & MAR', file: 'medication-profile-and-mar.pdf', client: true,
     blurb: 'Current medication list with allergies, physician and pharmacy, plus a monthly administration / assistance record for daily initials.' },
+  { key: 'observation', section: 'patient', title: 'Vital Signs Observation Chart', short: 'Vital Signs Observation Chart', file: 'vital-signs-observation-chart.pdf', client: true,
+    blurb: 'BP, heart rate, respirations, oxygen saturation and temperature — 20 readings with report-if parameters, plus a trend graph that plots them.' },
   { key: 'physician', section: 'patient', title: 'Physician Communication (SBAR)', short: 'Physician Communication', file: 'physician-communication-sbar.pdf', client: true,
     blurb: 'Nurse-to-doctor report — situation, background, assessment, request — with a physician response section. Print, scan or fax, and file the signed reply.' },
   { key: 'management', section: 'agency', title: 'Management and Supervision of Services', short: 'Management & Supervision Plan', file: 'management-and-supervision-plan.pdf', client: false,
