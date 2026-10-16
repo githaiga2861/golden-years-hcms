@@ -47,7 +47,7 @@ function mar(d) {
 <div><div class="sh2">Codes</div><p class="note" style="margin:0">R = refused · H = hospital / away · N = not available · S = self-administered with reminder only · D = discontinued · O = other (explain in notes). Circle the initials for any dose not given and record the reason, and who was notified, in the visit notes.</p></div>
 <table class="form compact"><tr><th>Initials</th><th>Full name &amp; title</th><th>Initials</th><th>Full name &amp; title</th></tr>${Array.from({ length: 3 }, () => '<tr style="height:16pt"><td></td><td></td><td></td><td></td></tr>').join('')}</table>
 </div>
-<p class="note">In-home caregivers may assist with self-administration only within their training and scope (WAC 246-888; nurse delegation under RCW 18.79.260). Medications are administered only by licensed staff or by delegation.</p>
+<p class="note">Medication assistance and administration follow the agency’s policy on staff roles and responsibilities (WAC 246-335-520(4)). Medication orders and the level of medication assistance for this patient are documented in the plan of care (WAC 246-335-540). Medications are administered only by licensed staff.</p>
 </section>`
 }
 
