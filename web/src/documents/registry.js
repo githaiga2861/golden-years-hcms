@@ -27,7 +27,7 @@ export const DOCUMENTS = [
   { key: 'physician', section: 'patient', title: 'Physician Communication (SBAR)', short: 'Physician Communication', file: 'physician-communication-sbar.pdf', client: true,
     blurb: 'Nurse-to-doctor report — situation, background, assessment, request — with a physician response section. Print, scan or fax, and file the signed reply.' },
   { key: 'management', section: 'agency', title: 'Management and Supervision of Services', short: 'Management & Supervision Plan', file: 'management-and-supervision-plan.pdf', client: false,
-    blurb: 'Survey-ready statement of how the agency has managed and supervised services across King, Pierce, Snohomish, Chelan and Kittitas counties, with supporting procedures — WAC 246-335-515(6).' },
+    blurb: 'Survey-ready statement of how the agency has managed and supervised services across King and Pierce counties, with supporting procedures — WAC 246-335-515(6).' },
   ...WORKSHEETS.map((w) => ({
     key: `ws_${w.key}`, section: w.client ? 'patient' : 'agency', fromManual: true, title: w.title, short: w.title,
     file: w.pdf, client: w.client, blurb: w.blurb,

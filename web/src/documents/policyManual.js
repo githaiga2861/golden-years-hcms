@@ -11,9 +11,9 @@ import { render as progressNotes } from './forms/progressNotes.js'
 export const title = 'Skilled Nursing Medical Home Health Policy and Manual'
 
 export const defaults = {
-  off_president: 'Rose Mbote', off_admin: 'Eric Njoroge', off_alt_admin: 'Eric Njoroge', off_docs: 'Rose Mbote',
+  off_president: 'Rose Mbote', off_docs: 'Rose Mbote',
   mg_counties: 'King & Pierce Counties', mg_hours: '9:00 am to 5:00 pm, Monday through Friday',
-  abs_admin: 'Eric Njoroge', abs_alt_admin: 'Ahmed M Ahmed MD MPH', abs_docs: 'Rose Mbote',
+  abs_alt_admin: 'Ahmed M Ahmed MD MPH', abs_docs: 'Rose Mbote',
 }
 
 const ws = (key) => {

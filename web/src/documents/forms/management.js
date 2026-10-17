@@ -12,7 +12,7 @@ const B = (h) => ({ t: 'list', items: h })
 
 const F = (n) => `<sup class="fn">${n}</sup>`
 
-export const COUNTIES = ['King County', 'Pierce County', 'Snohomish County', 'Chelan County', 'Kittitas County']
+export const COUNTIES = ['King County', 'Pierce County']
 
 // Narrative statement for the surveyor — how the agency has managed and
 // supervised services throughout all of its service areas (counties).
@@ -104,6 +104,6 @@ export const schema = [
   { t: 'lines', k: 'mg_notes', n: 3 },
 ]
 
-export const defaults = { mg_counties: 'King, Pierce, Snohomish, Chelan and Kittitas Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
+export const defaults = { mg_counties: 'King and Pierce Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
 
 export const render = (data = {}) => renderItems(schema, { ...defaults, ...data })
