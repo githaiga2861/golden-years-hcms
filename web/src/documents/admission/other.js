@@ -65,7 +65,7 @@ export const surveyGroup = {
     { t: 'row', f: [['patient_name', 'Patient name:'], ['sv_date', 'Date:', 'w2', 'date']] },
     { t: 'p', html: 'We are privileged to participate in your care. We are interested in rendering quality care to our patients and would appreciate your input by answering the following questions. Your evaluation will allow us to be more responsive to future patient/family needs. Feel free to use the back of the form to expand on anything.' },
     { t: 'ynTable', k: 'sv', opts: ['Yes', 'No', 'N/A'], numLabel: '#', descLabel: 'Question', sections: [{ items: SURVEY }] },
-    { t: 'lines', k: 'sv_comments', label: 'Comments:', n: 3 },
+    { t: 'lines', k: 'sv_comments', label: 'Comments:', n: 2 },
     { t: 'p', cls: 'center', html: '<i>Thank you for taking the time to complete the survey.</i>' },
   ],
 }

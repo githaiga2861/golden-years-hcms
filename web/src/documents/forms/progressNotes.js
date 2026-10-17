@@ -60,7 +60,7 @@ function page(d, p, opts) {
 }
 
 const CSS = `<style>
-table.pn tr.pn-row td { height: 58pt; }
+table.pn tr.pn-row td { height: 50pt; }
 table.pn td.pn-n { color: #0b5394; font-weight: 600; text-align: center; vertical-align: middle; }
 table.pn td.pn-note { background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 13.6pt, #dbe3ec 13.6pt, #dbe3ec 14.3pt); font-size: 8.6pt; line-height: 14.3pt; }
 </style>`

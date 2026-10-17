@@ -6,7 +6,7 @@ import { renderItems } from '../formkit.js'
 
 export const title = 'Vital Signs Observation Chart'
 
-const N = 20
+const N = 15
 // Table columns (index 0 is the static reading number).
 const COL = { date: 1, time: 2, bp: 3, hr: 4, rr: 5, spo2: 6, temp: 7, init: 8, note: 9 }
 
@@ -25,12 +25,11 @@ export const schema = [
   { t: 'sh2', text: 'Report to the nurse / physician if' },
   { t: 'html', html: `<table class="form compact obs-params"><tr><th>Blood pressure</th><th>Heart rate</th><th>Respirations</th><th>Oxygen saturation</th><th>Temperature</th></tr>
 <tr><td>{{obs_p_bp|Report BP if|100%}}</td><td>{{obs_p_hr|Report heart rate if|100%}}</td><td>{{obs_p_rr|Report respirations if|100%}}</td><td>{{obs_p_spo2|Report oxygen saturation if|100%}}</td><td>{{obs_p_temp|Report temperature if|100%}}</td></tr></table>` },
-  { t: 'p', cls: 'note', html: 'Use the physician’s parameters when ordered; otherwise the agency defaults above apply. Call 911 for chest pain, severe shortness of breath, sudden confusion, or oxygen saturation that stays below 88%.' },
+  { t: 'p', cls: 'note', html: 'Use the physician’s parameters when ordered; otherwise the agency defaults above apply. Call 911 for chest pain, severe shortness of breath, sudden confusion, or oxygen saturation that stays below 88%. Record BP as systolic/diastolic (e.g. 128/76) and O₂ litres if on oxygen (e.g. 94 on 2 L); note the action taken and who was notified for any reading outside the parameters.' },
   { t: 'table', k: 'obs', label: 'Readings', cls: 'compact obs',
     head: ['#', 'Date', 'Time', 'BP (mmHg)', 'Heart rate (bpm)', 'Resp (/min)', 'SpO₂ (%)', 'Temp (°F)', 'Initials', 'Comments / action taken'],
     widths: ['4%', '12%', '7%', '10%', '8%', '7%', '7%', '7%', '7%'],
-    rows: Array.from({ length: N }, (_, i) => [{ s: String(i + 1) }, ...Array(9).fill(null)]), rowH: 16 },
-  { t: 'p', cls: 'note', html: 'Record BP as systolic/diastolic (e.g. 128/76). Note O₂ in litres if on oxygen (e.g. 94 on 2 L). Write the action taken and who was notified for any reading outside the parameters.' },
+    rows: Array.from({ length: N }, (_, i) => [{ s: String(i + 1) }, ...Array(9).fill(null)]), rowH: 15 },
   { t: 'sig', f: [['obs_rev_sig', 'Reviewed by (RN) — signature'], ['obs_rev_date', 'Date', 'date']] },
 ]
 
@@ -46,7 +45,7 @@ const PANELS = [
 ]
 
 function chart(d) {
-  const W = 540, L = 46, R = 8, PH = 88, GAP = 30, TOP = 14
+  const W = 540, L = 46, R = 8, PH = 80, GAP = 30, TOP = 14
   const cw = (W - L - R) / N
   const x = (i) => L + cw * i + cw / 2
   let y0 = TOP
