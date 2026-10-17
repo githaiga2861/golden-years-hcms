@@ -104,6 +104,6 @@ export const schema = [
   { t: 'lines', k: 'mg_notes', n: 3 },
 ]
 
-export const defaults = { mg_counties: 'King and Pierce Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
+export const defaults = { mg_admin_name: 'Eric Njoroge', mg_docs_name: 'Rose Mbote', 'mg_people.0.1': 'Eric Njoroge', 'mg_people.2.1': 'Rose Mbote', mg_counties: 'King and Pierce Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
 
 export const render = (data = {}) => renderItems(schema, { ...defaults, ...data })
