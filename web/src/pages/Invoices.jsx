@@ -173,7 +173,7 @@ function InvoiceView({ invoice, onClose }) {
             <button className="btn btn-primary" onClick={printWithDue} disabled={!due || printing}>{printing ? 'Preparing…' : 'Save & print'}</button></>
         }>
           <p className="muted" style={{ fontSize: '.88rem', marginTop: 0 }}>This date prints as the invoice's <b>Due date</b> and in the payment terms.</p>
-          <Field label="Due date"><input type="date" value={due} min={toISODate(invoice.created_at ? new Date(invoice.created_at) : new Date())} onChange={(e) => setDue(e.target.value)} /></Field>
+          <Field label="Due date"><input type="date" value={due} onChange={(e) => setDue(e.target.value)} /></Field>
           <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', marginTop: '.5rem' }}>
             {[7, 15, 30].map((n) => (
               <button key={n} type="button" className="btn btn-quiet" style={{ fontSize: '.8rem' }}
