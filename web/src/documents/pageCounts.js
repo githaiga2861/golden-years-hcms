@@ -5,7 +5,7 @@ export default {
  "assessment": 3,
  "safety": 2,
  "nurse": 4,
- "management": 7,
+ "management": 6,
  "ws_review": 1,
  "ws_emergency": 2,
  "ws_risk": 1,

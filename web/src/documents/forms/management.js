@@ -12,14 +12,14 @@ const B = (h) => ({ t: 'list', items: h })
 
 const F = (n) => `<sup class="fn">${n}</sup>`
 
-export const COUNTIES = ['King County', 'Pierce County']
+export const COUNTIES = ['Lewis County', 'Pierce County', 'Thurston County']
 
 // Narrative statement for the surveyor — how the agency has managed and
 // supervised services throughout all of its service areas (counties).
 const statement = [
   { t: 'title', text: 'Management and Supervision of Services', sub: 'Statement of how the agency has provided management and supervision of services throughout all of its service areas' },
   { t: 'p', html: `${AGENCY.legal} (“Golden Years”) has provided management, leadership and ongoing supervision of services in every county it is licensed to serve, so that each patient receives safe, consistent, high-quality and person-centered care wherever they live.${F(1)} All services are directed from the agency office at ${ADDRESS_LINE}, and the same policies, forms, staffing standards and supervisory practices apply in every service area.` },
-  { t: 'table', k: 'mg_areas', label: 'Service areas', head: ['Service area', 'Supervising clinician / manager responsible', 'Notes'], widths: ['24%', '42%'], rows: COUNTIES.map((c) => [{ s: `<b>${c}</b>` }, null, null]), rowH: 17 },
+  { t: 'table', k: 'mg_areas', label: 'Service areas', head: ['Service area', 'Supervising clinician / manager responsible'], widths: ['32%'], rows: COUNTIES.map((c) => [{ s: `<b>${c}</b>` }, null]), rowH: 17 },
   { t: 'sh', text: 'Leadership and accountability' },
   { t: 'p', html: 'The Administrator, {{mg_admin_name|Administrator — name|1.7in}}, has held full authority for day-to-day operations, finances, contracts, staffing and compliance across all service areas, with a designated alternate available in the Administrator’s absence. The Director of Clinical Services, {{mg_docs_name|Director of Clinical Services — name|1.7in}}, a registered nurse licensed in Washington, has directed and supervised all patient care and has been available, directly or through the on-call nurse, whenever care is being provided.' },
   { t: 'sh', text: 'Supervision in every service area' },
@@ -100,10 +100,8 @@ export const schema = [
     'Scheduling, visit verification and caregiver messaging run through the agency\'s care management system, so supervisors see visits, notes and alerts from every service area in real time.',
     'Back-up staff are assigned when a scheduled caregiver is unavailable, following the Back-Up Care Policy.',
   ]),
-  { t: 'sh2', text: 'Additional notes' },
-  { t: 'lines', k: 'mg_notes', n: 3 },
 ]
 
-export const defaults = { mg_admin_name: 'Eric Njoroge', mg_docs_name: 'Rose Mbote', 'mg_people.0.1': 'Eric Njoroge', 'mg_people.2.1': 'Rose Mbote', mg_counties: 'King and Pierce Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
+export const defaults = { mg_admin_name: 'Eric Njoroge', mg_docs_name: 'Rose Mbote', 'mg_people.0.1': 'Eric Njoroge', 'mg_people.0.3': '(940) 208-5788', 'mg_people.2.1': 'Rose Mbote', 'mg_people.2.2': 'BSN, RN, RND, PDN', 'mg_people.2.3': '(206) 436-9751', mg_counties: 'Lewis, Pierce and Thurston Counties, Washington', mg_hours: '9:00 am – 5:00 pm, Monday – Friday; on-call nurse 24 hours a day' }
 
 export const render = (data = {}) => renderItems(schema, { ...defaults, ...data })
