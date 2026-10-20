@@ -18,29 +18,29 @@ export const COUNTIES = ['Lewis County', 'Pierce County', 'Thurston County']
 // supervised services throughout all of its service areas (counties).
 const statement = [
   { t: 'title', text: 'Management and Supervision of Services', sub: 'Statement of how the agency has provided management and supervision of services throughout all of its service areas' },
-  { t: 'p', html: `${AGENCY.legal} (“Golden Years”) has provided management, leadership and ongoing supervision of services in every county it is licensed to serve, so that each patient receives safe, consistent, high-quality and person-centered care wherever they live.${F(1)} All services are directed from the agency office at ${ADDRESS_LINE}, and the same policies, forms, staffing standards and supervisory practices apply in every service area.` },
+  { t: 'p', html: `${AGENCY.legal} (“Golden Years”) has provided management, leadership and ongoing supervision of services in every county it is licensed to serve, so that each patient receives safe, consistent, high-quality and person-centered care wherever they live. All services are directed from the agency office at ${ADDRESS_LINE}, and the same policies, forms, staffing standards and supervisory practices apply in every service area.` },
   { t: 'table', k: 'mg_areas', label: 'Service areas', head: ['Service area', 'Supervising clinician / manager responsible'], widths: ['32%'], rows: COUNTIES.map((c) => [{ s: `<b>${c}</b>` }, null]), rowH: 17 },
   { t: 'sh', text: 'Leadership and accountability' },
   { t: 'p', html: 'The Administrator, {{mg_admin_name|Administrator — name|1.7in}}, has held full authority for day-to-day operations, finances, contracts, staffing and compliance across all service areas, with a designated alternate available in the Administrator’s absence. The Director of Clinical Services, {{mg_docs_name|Director of Clinical Services — name|1.7in}}, a registered nurse licensed in Washington, has directed and supervised all patient care and has been available, directly or through the on-call nurse, whenever care is being provided.' },
   { t: 'sh', text: 'Supervision in every service area' },
   { t: 'list', items: [
-    'Supervisory home visits have been scheduled and completed in each county on the required cycle — at least monthly for acute care and at least every six months for maintenance or aide-only care — by a licensed nurse or therapist, and documented in the patient record.' + F(2),
+    'Supervisory home visits have been scheduled and completed in each county on the required cycle — at least monthly for acute care and at least every six months for maintenance or aide-only care — by a licensed nurse or therapist, and documented in the patient record.',
     'The office and the on-call nurse have been reachable 24 hours a day, 7 days a week, so caregivers in every county have had immediate access to clinical guidance after hours, on weekends and on holidays.',
     'Scheduling, electronic visit verification, visit notes and caregiver messaging run through the agency’s care management system, giving supervisors a real-time view of visits, missed or late visits and alerts from every service area.',
     'Back-up caregivers have been assigned when a scheduled caregiver was unavailable, so that visits continued without interruption in each county.',
   ] },
   { t: 'sh', text: 'Qualified and competent staff' },
-  { t: 'p', html: `Golden Years has maintained qualified personnel through background checks, credential and license verification, orientation to agency policies and to each patient’s plan of care, competency checks before independent care, ongoing training, and written performance evaluations at least annually.${F(3)} Contracted services have been monitored against their written agreements and evaluated at least once a year.` },
+  { t: 'p', html: `Golden Years has maintained qualified personnel through background checks, credential and license verification, orientation to agency policies and to each patient’s plan of care, competency checks before independent care, ongoing training, and written performance evaluations at least annually. Contracted services have been monitored against their written agreements and evaluated at least once a year.` },
   { t: 'sh', text: 'Care planning, coordination and documentation' },
-  { t: 'p', html: `Each patient has received an in-home assessment and a written plan of care developed with the patient or representative and the authorizing practitioner, reviewed as the patient’s condition changed.${F(4)} Nurses have communicated changes in condition to physicians promptly, and visit documentation has been reviewed for accuracy, completeness and timeliness.${F(5)}` },
+  { t: 'p', html: `Each patient has received an in-home assessment and a written plan of care developed with the patient or representative and the authorizing practitioner, reviewed as the patient’s condition changed. Nurses have communicated changes in condition to physicians promptly, and visit documentation has been reviewed for accuracy, completeness and timeliness.` },
   { t: 'sh', text: 'Patient rights, safety and infection prevention' },
-  { t: 'p', html: `Patients have been informed of their rights and responsibilities at admission, and concerns and complaints have been investigated and resolved promptly.${F(6)} Supervisors have overseen infection prevention and control practices, home safety assessments and incident reporting, and the agency’s emergency preparedness plan has covered patients and staff in every service area.${F(7)}` },
+  { t: 'p', html: `Patients have been informed of their rights and responsibilities at admission, and concerns and complaints have been investigated and resolved promptly. Supervisors have overseen infection prevention and control practices, home safety assessments and incident reporting, and the agency’s emergency preparedness plan has covered patients and staff in every service area.` },
   { t: 'sh', text: 'Quality improvement' },
-  { t: 'p', html: `One Quality Improvement Program has been applied across all service areas. Indicators such as timeliness of start of care, missed visits, incidents, complaints, patient satisfaction and record-review findings have been tracked and compared across counties, and the results have been used to strengthen policies, training and supervision.${F(8)}` },
+  { t: 'p', html: `One Quality Improvement Program has been applied across all service areas. Indicators such as timeliness of start of care, missed visits, incidents, complaints, patient satisfaction and record-review findings have been tracked and compared across counties, and the results have been used to strengthen policies, training and supervision.` },
   { t: 'p', cls: 'callout', html: 'Through these established management practices, ongoing supervision, open communication and continuous quality improvement, Golden Years has maintained an effective and accountable service delivery system that supports the health, safety, dignity and independence of every individual it serves — and remains committed to the highest standards of professionalism, regulatory compliance and excellence in patient care throughout all of its service areas.' },
   { t: 'sig', f: [['mg_sig_admin', 'Administrator signature'], ['mg_sig_admin_date', 'Date', 'date']] },
   { t: 'sig', f: [['mg_sig_docs', 'Director of Clinical Services signature'], ['mg_sig_docs_date', 'Date', 'date']] },
-  { t: 'html', html: `<div class="fnotes"><div class="fnotes-h">Notes</div><ol>
+  { t: 'html', html: `<div class="fnotes"><div class="fnotes-h">Regulatory references</div><ul>
 <li>WAC 246-335-515(6) — plan of operation: management and supervision of services throughout all service areas.</li>
 <li>WAC 246-335-545 — supervision of home health services.</li>
 <li>WAC 246-335-525 and 246-335-530 — personnel, contractor and volunteer policies and records, including WAC 246-335-525(16)–(17) performance evaluations.</li>
@@ -49,7 +49,7 @@ const statement = [
 <li>WAC 246-335-535 — home health patient’s bill of rights.</li>
 <li>WAC 246-335-525 and the agency’s Emergency Preparedness Disaster Plan (Plan of Operation, WAC 246-335-515).</li>
 <li>WAC 246-335-555 — quality improvement program.</li>
-</ol></div>` },
+</ul></div>` },
 ]
 
 export const schema = [
