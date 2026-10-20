@@ -88,14 +88,55 @@ function footer(doc, text) {
   }
 }
 
+// Clock-in / clock-out time of each invoice line. Uses the line's visit_id when
+// the invoice stores it; otherwise matches the client's visits in the period by
+// date and hours.
+const tShort = (v) => (v ? new Date(v).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: TZ }) : '')
+const localDay = (v) => new Date(v).toLocaleDateString('en-CA', { timeZone: TZ })
+export async function invoiceItemTimes(invoice, items) {
+  const out = {}
+  if (!items.length) return out
+  try {
+    let visits = []
+    const ids = items.map((i) => i.visit_id).filter(Boolean)
+    if (ids.length) {
+      const { data } = await supabase.from('visits').select('id,clock_in_at,clock_out_at').in('id', ids)
+      visits = data || []
+      const byId = new Map(visits.map((v) => [v.id, v]))
+      items.forEach((i) => { const v = byId.get(i.visit_id); if (v) out[i.id] = v })
+    }
+    const rest = items.filter((i) => !out[i.id])
+    if (rest.length) {
+      const start = new Date(`${invoice.period_start}T00:00:00`); start.setDate(start.getDate() - 1)
+      const end = new Date(`${invoice.period_end}T00:00:00`); end.setDate(end.getDate() + 2)
+      const { data } = await supabase.from('v_visit_ledger').select('*').eq('client_id', invoice.client_id)
+        .gte('clock_in_at', start.toISOString()).lt('clock_in_at', end.toISOString()).order('clock_in_at')
+      const pool = (data || []).filter((v) => v.clock_in_at && !Object.values(out).some((o) => o.clock_in_at === v.clock_in_at))
+      rest.forEach((i) => {
+        const day = String(i.service_date || '').slice(0, 10)
+        let best = -1, diff = Infinity
+        pool.forEach((v, k) => {
+          if (localDay(v.clock_in_at) !== day) return
+          const d = Math.abs(Number(v.worked_hours || 0) - Number(i.hours || 0))
+          if (d < diff) { diff = d; best = k }
+        })
+        if (best >= 0) { out[i.id] = pool[best]; pool.splice(best, 1) }
+      })
+    }
+  } catch (e) { console.warn('Invoice times unavailable', e) }
+  return out
+}
+export const invoiceTimeLabel = (v) => (v ? `${tShort(v.clock_in_at)} – ${v.clock_out_at ? tShort(v.clock_out_at) : '…'}` : '')
+
 async function buildInvoicePdf(invoice) {
   const [itemsRes, clientRes, setRes, logo] = await Promise.all([
     supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id).order('service_date'),
-    supabase.from('clients').select('first_name,last_name,address,city,state,zip,billing_email').eq('id', invoice.client_id).maybeSingle(),
+    supabase.from('clients').select('first_name,last_name,address,city,state,zip,phone').eq('id', invoice.client_id).maybeSingle(),
     supabase.from('app_settings').select('agency_phone,agency_email').eq('id', 1).maybeSingle(),
     loadLogo(),
   ])
   const items = itemsRes.data || []
+  const times = await invoiceItemTimes(invoice, items)
   const c = clientRes.data || {}
   const agency = { phone: setRes.data?.agency_phone || AGENCY.phone, email: setRes.data?.agency_email || AGENCY.email }
 
@@ -128,16 +169,16 @@ async function buildInvoicePdf(invoice) {
   if (c.address) { doc.text(c.address, 14, y); y += 5 }
   const cityLine = [c.city, [c.state, c.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')
   if (cityLine) { doc.text(cityLine, 14, y); y += 5 }
-  if (c.billing_email) { doc.text(c.billing_email, 14, y); y += 5 }
+  if (c.phone) { doc.text(`Tel ${c.phone}`, 14, y); y += 5 }
 
   autoTable(doc, {
     startY: Math.max(y, 78) + 4,
-    head: [['Date', 'Service', 'Hours', 'Rate', 'Amount']],
-    body: items.map((i) => [dDate(String(i.service_date || '').slice(0, 10)), String(i.description || ''), Number(i.hours || 0).toFixed(2), money(i.rate), money(i.amount)]),
+    head: [['Date', 'Time (in – out)', 'Service', 'Hours', 'Rate', 'Amount']],
+    body: items.map((i) => [dDate(String(i.service_date || '').slice(0, 10)), invoiceTimeLabel(times[i.id]) || '—', String(i.description || ''), Number(i.hours || 0).toFixed(2), money(i.rate), money(i.amount)]),
     headStyles: { fillColor: NAVY, textColor: 255, fontSize: 9 },
     bodyStyles: { fontSize: 9 },
     alternateRowStyles: { fillColor: [244, 247, 251] },
-    columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
+    columnStyles: { 0: { cellWidth: 26 }, 1: { cellWidth: 34 }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
     margin: { left: 14, right: 14, bottom: 30 },
   })
 

@@ -1,4 +1,4 @@
-import { downloadInvoicePdf } from '../lib/pdf'
+import { downloadInvoicePdf, invoiceItemTimes, invoiceTimeLabel } from '../lib/pdf'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDate, fmtMoney, fullName, toISODate, addDays } from '../lib/format'
@@ -120,9 +120,13 @@ function GenerateModal({ clients, onClose, onDone }) {
 
 function InvoiceView({ invoice, onClose }) {
   const [items, setItems] = useState([])
+  const [times, setTimes] = useState({})
   useEffect(() => {
     supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id)
-      .order('service_date').then(({ data }) => setItems(data || []))
+      .order('service_date').then(async ({ data }) => {
+        setItems(data || [])
+        setTimes(await invoiceItemTimes(invoice, data || []))
+      })
   }, [invoice.id])
 
   return (
@@ -134,11 +138,11 @@ function InvoiceView({ invoice, onClose }) {
     }>
       <p className="muted">{fmtDate(invoice.period_start)} – {fmtDate(invoice.period_end)} · Status: <b style={{ textTransform: 'capitalize' }}>{invoice.status}</b></p>
       <table className="data mb">
-        <thead><tr><th>Date</th><th>Service</th><th className="num">Hours</th><th className="num">Rate</th><th className="num">Amount</th></tr></thead>
+        <thead><tr><th>Date</th><th>Time (in – out)</th><th>Service</th><th className="num">Hours</th><th className="num">Rate</th><th className="num">Amount</th></tr></thead>
         <tbody>
           {items.map((i) => (
             <tr key={i.id}>
-              <td>{fmtDate(i.service_date)}</td><td>{i.description}</td>
+              <td>{fmtDate(i.service_date)}</td><td style={{ whiteSpace: 'nowrap' }}>{invoiceTimeLabel(times[i.id]) || '—'}</td><td>{i.description}</td>
               <td className="num">{Number(i.hours).toFixed(2)}</td>
               <td className="num">{fmtMoney(i.rate)}</td>
               <td className="num">{fmtMoney(i.amount)}</td>
