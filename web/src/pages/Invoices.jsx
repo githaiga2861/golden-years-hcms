@@ -121,6 +121,22 @@ function GenerateModal({ clients, onClose, onDone }) {
 function InvoiceView({ invoice, onClose }) {
   const [items, setItems] = useState([])
   const [times, setTimes] = useState({})
+  const dueKey = `invoice-due-${invoice.id}`
+  const defaultDue = () => {
+    try { const v = localStorage.getItem(dueKey); if (v) return v } catch { /* storage unavailable */ }
+    return toISODate(addDays(invoice.created_at ? new Date(invoice.created_at) : new Date(), 15))
+  }
+  const [askDue, setAskDue] = useState(false)
+  const [due, setDue] = useState(defaultDue)
+  const [printing, setPrinting] = useState(false)
+  const printWithDue = async () => {
+    if (!due) return
+    try { localStorage.setItem(dueKey, due) } catch { /* storage unavailable */ }
+    setPrinting(true)
+    await downloadInvoicePdf(invoice, { dueDate: due })
+    setPrinting(false)
+    setAskDue(false)
+  }
   useEffect(() => {
     supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id)
       .order('service_date').then(async ({ data }) => {
@@ -132,7 +148,7 @@ function InvoiceView({ invoice, onClose }) {
   return (
     <Modal title={invoice.invoice_number} onClose={onClose} wide footer={
       <>
-        <button className="btn btn-outline" onClick={() => downloadInvoicePdf(invoice)}>Print / Save PDF</button>
+        <button className="btn btn-outline" onClick={() => setAskDue(true)}>Print / Save PDF</button>
         <button className="btn btn-quiet" onClick={onClose}>Close</button>
       </>
     }>
@@ -151,6 +167,21 @@ function InvoiceView({ invoice, onClose }) {
         </tbody>
       </table>
       <h2 style={{ textAlign: 'right' }}>Total {fmtMoney(invoice.total)}</h2>
+      {askDue && (
+        <Modal title="Choose the due date" onClose={() => setAskDue(false)} footer={
+          <><button className="btn btn-quiet" onClick={() => setAskDue(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={printWithDue} disabled={!due || printing}>{printing ? 'Preparing…' : 'Save & print'}</button></>
+        }>
+          <p className="muted" style={{ fontSize: '.88rem', marginTop: 0 }}>This date prints as the invoice's <b>Due date</b> and in the payment terms.</p>
+          <Field label="Due date"><input type="date" value={due} min={toISODate(invoice.created_at ? new Date(invoice.created_at) : new Date())} onChange={(e) => setDue(e.target.value)} /></Field>
+          <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', marginTop: '.5rem' }}>
+            {[7, 15, 30].map((n) => (
+              <button key={n} type="button" className="btn btn-quiet" style={{ fontSize: '.8rem' }}
+                onClick={() => setDue(toISODate(addDays(invoice.created_at ? new Date(invoice.created_at) : new Date(), n)))}>Net {n}</button>
+            ))}
+          </div>
+        </Modal>
+      )}
       <p className="muted" style={{ fontSize: '.82rem' }}>
         QuickBooks sync: {invoice.qb_synced ? 'synced' : 'not yet connected — Phase 2 (see Settings).'}
       </p>

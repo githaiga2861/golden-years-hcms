@@ -128,7 +128,7 @@ export async function invoiceItemTimes(invoice, items) {
 }
 export const invoiceTimeLabel = (v) => (v ? `${tShort(v.clock_in_at)} – ${v.clock_out_at ? tShort(v.clock_out_at) : '…'}` : '')
 
-async function buildInvoicePdf(invoice) {
+async function buildInvoicePdf(invoice, opts = {}) {
   const [itemsRes, clientRes, setRes, logo] = await Promise.all([
     supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id).order('service_date'),
     supabase.from('clients').select('first_name,last_name,address,city,state,zip,phone').eq('id', invoice.client_id).maybeSingle(),
@@ -147,7 +147,7 @@ async function buildInvoicePdf(invoice) {
   // Title block
   doc.setTextColor(...NAVY).setFont('helvetica', 'bold').setFontSize(24).text('INVOICE', W - 14, 46, { align: 'right' })
   const issued = invoice.created_at ? new Date(invoice.created_at) : new Date()
-  const due = new Date(issued.getTime() + NET_DAYS * 86400000)
+  const due = opts.dueDate ? new Date(`${opts.dueDate}T12:00:00`) : new Date(issued.getTime() + NET_DAYS * 86400000)
   const meta = [
     ['Invoice #', invoice.invoice_number],
     ['Invoice date', issued.toLocaleDateString('en-US', { ...fmt, timeZone: TZ })],
@@ -155,9 +155,15 @@ async function buildInvoicePdf(invoice) {
     ['Service period', `${dDate(invoice.period_start)} - ${dDate(invoice.period_end)}`],
   ]
   doc.setFontSize(9)
+  // Label column sits left of the widest value so long values never overlap it.
+  doc.setFont('helvetica', 'normal')
+  const valW = Math.max(...meta.map(([, v]) => doc.getTextWidth(String(v || ''))))
+  doc.setFont('helvetica', 'bold')
+  const labW = Math.max(...meta.map(([k]) => doc.getTextWidth(k)))
+  const labX = Math.min(W - 70, W - 14 - valW - 6 - labW)
   meta.forEach(([k, v], i) => {
     const y = 54 + i * 5.5
-    doc.setFont('helvetica', 'bold').setTextColor(...GREY).text(k, W - 70, y)
+    doc.setFont('helvetica', 'bold').setTextColor(...GREY).text(k, labX, y)
     doc.setFont('helvetica', 'normal').setTextColor(30, 30, 30).text(String(v || ''), W - 14, y, { align: 'right' })
   })
 
@@ -198,7 +204,7 @@ async function buildInvoicePdf(invoice) {
   doc.setTextColor(...NAVY).setFontSize(10).text('Payment terms', 14, ty)
   doc.setFont('helvetica', 'normal').setFontSize(8.5).setTextColor(70, 70, 70)
   const terms = [
-    `Payment is due within ${NET_DAYS} days of the invoice date (Net ${NET_DAYS}).`,
+    `Payment is due by ${due.toLocaleDateString('en-US', { ...fmt, timeZone: TZ })}.`,
     `Please make checks payable to ${PAYABLE_TO} and write the invoice number on the check.`,
     'Hours billed are actual time worked, recorded at clock in and clock out and verified by our office.',
     `Questions about this invoice? Call ${agency.phone} or email ${agency.email}.`,
@@ -272,9 +278,10 @@ export async function downloadReportPdf(stats, range) {
   doc.save(`gy-report-${range.start}-to-${range.end}.pdf`)
 }
 
-export async function downloadInvoicePdf(invoice) {
+/** opts.dueDate: 'YYYY-MM-DD' chosen when printing (defaults to Net 15). */
+export async function downloadInvoicePdf(invoice, opts = {}) {
   try {
-    await buildInvoicePdf(invoice)
+    await buildInvoicePdf(invoice, opts)
   } catch (e) {
     console.error('Invoice PDF failed', e)
     alert('Could not create the invoice PDF: ' + (e?.message || e))
